@@ -19,7 +19,7 @@ export const config = {
   agentServiceUrl: process.env.SERVER_URL ?? 'http://localhost:3001',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
   /** Cost deducted per chat request: default 0.001 SOL */
-  costPerRequestLamports: BigInt(process.env.COST_PER_REQUEST_LAMPORTS ?? String(1_000_000)),
+  costPerRequestLamports: BigInt(process.env.COST_PER_REQUEST_LAMPORTS ?? String(100_000)),
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? '',
   /** OpenRouter model — see https://openrouter.ai/models */
   aiModel: process.env.AI_MODEL ?? 'openai/gpt-4o-mini',

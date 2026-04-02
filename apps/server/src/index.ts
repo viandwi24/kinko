@@ -5,6 +5,7 @@ import { chatRoute } from './routes/chat'
 import { agentCardRoute } from './routes/agent-card'
 import { configRoute } from './routes/config'
 import { pricesRoute } from './routes/prices'
+import { authRoute } from './routes/auth'
 
 const app = new Hono()
 
@@ -12,12 +13,13 @@ app.use('*', logger())
 app.use('*', cors({
   origin: ['http://localhost:3000', process.env.FRONTEND_URL ?? ''],
   allowMethods: ['GET', 'POST'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Payment'],
 }))
 
 app.get('/health', (c) => c.json({ status: 'ok', agent: 'kinko' }))
 
 app.route('/.well-known', agentCardRoute)
+app.route('/api/auth', authRoute)
 app.route('/api/config', configRoute)
 app.route('/api', chatRoute)
 app.route('/agents/prices', pricesRoute)
