@@ -5,7 +5,7 @@ import { SERVICES } from '../config/services.js'
 type FormValues = Record<string, Record<string, string>>
 
 // Field keys yang auto-filled — tidak ditampilkan di preview (terlalu panjang + secret)
-const HIDDEN_FIELDS = ['AGENT_PRIVATE_KEY', 'OPERATOR_PRIVATE_KEY']
+const HIDDEN_FIELDS = ['SERVER_AGENT_PRIVATE_KEY', 'OPERATOR_PRIVATE_KEY']
 
 export function Preview({
   services,

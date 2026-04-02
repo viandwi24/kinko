@@ -132,7 +132,7 @@ export function KeypairSetup({ onDone }: { onDone: (info: KeypairInfo) => void }
             <Text color="yellow">  {KEYPAIR_FILE}</Text>
             <Text dimColor>  (file ini di-gitignore — jangan di-commit)</Text>
           </Box>
-          <Text dimColor>AGENT_PRIVATE_KEY dan OPERATOR_PRIVATE_KEY akan otomatis diisi.</Text>
+          <Text dimColor>SERVER_AGENT_PRIVATE_KEY akan otomatis diisi.</Text>
           <Text dimColor>Enter untuk lanjut</Text>
         </Box>
       )}

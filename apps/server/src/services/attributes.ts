@@ -1,5 +1,5 @@
 /**
- * attributes.ts — updates the Attributes plugin on Agent A's Core Asset.
+ * attributes.ts — updates the Attributes plugin on Kinko Agent's Core Asset.
  * Called after every successful chat request.
  */
 
@@ -9,8 +9,8 @@ import { mplCore, fetchAsset, updatePlugin } from '@metaplex-foundation/mpl-core
 import { config } from '../config.js'
 
 function buildUmi() {
-  const raw = process.env.AGENT_PRIVATE_KEY
-  if (!raw) throw new Error('AGENT_PRIVATE_KEY is not set')
+  const raw = process.env.SERVER_AGENT_PRIVATE_KEY
+  if (!raw) throw new Error('SERVER_AGENT_PRIVATE_KEY is not set')
   const bytes = JSON.parse(raw) as number[]
 
   const umi = createUmi(config.rpcUrl).use(mplCore())

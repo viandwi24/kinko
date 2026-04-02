@@ -8,6 +8,9 @@ skip-lint = false
 [programs.localnet]
 kinko_treasury = "aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL"
 
+[programs.devnet]
+kinko_treasury = "aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL"
+
 [registry]
 url = "https://api.apr.dev"
 

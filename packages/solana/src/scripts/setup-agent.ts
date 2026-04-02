@@ -1,52 +1,59 @@
 /**
- * Phase 2 — setup-agent.ts
+ * setup-agent.ts
  *
- * Creates Agent A as an MPL Core asset, registers identity, registers the
+ * Creates Kinko Agent as an MPL Core asset, registers identity, registers the
  * operator wallet as an Executive, and delegates execution to it.
  *
- * Run: bun run packages/solana/src/scripts/setup-agent.ts
+ * Can be run standalone:  bun run packages/solana/src/scripts/setup-agent.ts
+ * Or imported directly:   import { setupAgent } from './setup-agent'
  *
- * Env vars (optional — falls back to defaults):
- *   SOLANA_RPC_URL       — default: https://api.devnet.solana.com
- *   SOLANA_KEYPAIR_PATH  — default: ~/.config/solana/id.json
- *   AGENT_SERVICE_URL    — default: http://localhost:3001
+ * Env vars read from process.env:
+ *   OPERATOR_PRIVATE_KEY  — JSON byte array (required)
+ *   SOLANA_RPC_URL        — default: https://api.devnet.solana.com
+ *   AGENT_SERVICE_URL     — default: http://localhost:3001
  */
 
-import { generateSigner } from '@metaplex-foundation/umi';
-import { create, findAssetSignerPda } from '@metaplex-foundation/mpl-core';
+import { generateSigner } from '@metaplex-foundation/umi'
+import { create, findAssetSignerPda } from '@metaplex-foundation/mpl-core'
 import {
   registerIdentityV1,
   findAgentIdentityV1Pda,
   safeFetchAgentIdentityV1,
-} from '@metaplex-foundation/mpl-agent-registry/dist/src/generated/identity';
-
+} from '@metaplex-foundation/mpl-agent-registry/dist/src/generated/identity'
 import {
   registerExecutiveV1,
   delegateExecutionV1,
   findExecutiveProfileV1Pda,
-} from '@metaplex-foundation/mpl-agent-registry/dist/src/generated/tools';
+} from '@metaplex-foundation/mpl-agent-registry/dist/src/generated/tools'
+import { createKinkoUmi } from '../umi'
 
-import { createKinkoUmi } from '../umi';
+export type SetupAgentResult = {
+  assetAddress: string
+  assetSignerPda: string
+  agentIdentityPda: string
+  executiveProfilePda: string
+}
 
-const SERVICE_URL = process.env.AGENT_SERVICE_URL ?? 'http://localhost:3001';
+export async function setupAgent(): Promise<SetupAgentResult> {
+  const serviceUrl = process.env.AGENT_SERVICE_URL ?? 'http://localhost:3001'
+  const agentName  = process.env.AGENT_NAME ?? 'Kinko'
+  const umi = createKinkoUmi()
+  const operator = umi.identity.publicKey
 
-async function main() {
-  const umi = createKinkoUmi();
-  const operator = umi.identity.publicKey;
+  console.log('Operator (executive) wallet:', operator)
+  console.log('RPC:', umi.rpc.getEndpoint?.() ?? 'devnet')
+  console.log('Agent name:', agentName)
+  console.log('')
 
-  console.log('Operator (executive) wallet:', operator);
-  console.log('RPC:', umi.rpc.getEndpoint?.() ?? 'devnet');
-  console.log('');
+  // ─── 1. Create Core Asset ────────────────────────────────────────────────────
+  console.log('Creating Core Asset for Kinko Agent...')
 
-  // ─── 1. Create Core Asset for Agent A ───────────────────────────────────────
-  console.log('Creating Core Asset for Agent A...');
-
-  const assetSigner = generateSigner(umi);
+  const assetSigner = generateSigner(umi)
 
   await create(umi, {
     asset: assetSigner,
-    name: 'Kinko',
-    uri: 'https://kinko.app/agent.json',
+    name: agentName,
+    uri: `${serviceUrl}/.well-known/metadata.json`,
     plugins: [
       {
         type: 'Attributes',
@@ -54,119 +61,93 @@ async function main() {
           { key: 'status',            value: 'active' },
           { key: 'total_requests',    value: '0' },
           { key: 'total_yield_spent', value: '0' },
-          { key: 'service_endpoint',  value: `${SERVICE_URL}/api/chat` },
+          { key: 'service_endpoint',  value: `${serviceUrl}/api/chat` },
           { key: 'version',           value: '1.0.0' },
         ],
       },
     ],
-  }).sendAndConfirm(umi);
+  }).sendAndConfirm(umi)
 
-  const assetAddress = assetSigner.publicKey;
-  console.log('  Asset address:         ', assetAddress);
+  const assetAddress = assetSigner.publicKey
+  console.log('  Asset address:         ', assetAddress)
 
-  // ─── 2. Derive Asset Signer PDA (agent wallet) ──────────────────────────────
-  const assetSignerPda = findAssetSignerPda(umi, { asset: assetAddress });
-  console.log('  Asset Signer PDA:      ', assetSignerPda[0]);
+  // ─── 2. Derive Asset Signer PDA ──────────────────────────────────────────────
+  const assetSignerPdaTuple = findAssetSignerPda(umi, { asset: assetAddress })
+  console.log('  Asset Signer PDA:      ', assetSignerPdaTuple[0])
 
-  // ─── 3. Register Agent Identity ─────────────────────────────────────────────
-  console.log('\nRegistering agent identity...');
+  // ─── 3. Register Agent Identity ──────────────────────────────────────────────
+  console.log('\nRegistering agent identity...')
 
-  const registrationDoc = {
-    type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
-    name: 'Kinko',
-    description:
-      'An autonomous AI agent funded by Solana staking yield. Users deposit SOL into a personal treasury; yield pays for AI requests. Agent A handles chat requests and delegates to specialist agents via x402 A2A payments.',
-    image: 'https://kinko.app/agent-a-avatar.png',
-    services: [
-      {
-        name: 'A2A',
-        endpoint: `${SERVICE_URL}/.well-known/agent.json`,
-        version: '0.3.0',
-      },
-      {
-        name: 'web',
-        endpoint: `${SERVICE_URL}/api/chat`,
-      },
-    ],
-    active: true,
-    registrations: [
-      {
-        agentId: assetAddress,
-        agentRegistry: 'solana:101:metaplex',
-      },
-    ],
-    supportedTrust: ['crypto-economic'],
-  };
-
-  // For hackathon: embed registration doc as a data URI to avoid needing Arweave upload
-  const registrationUri = `data:application/json;base64,${Buffer.from(JSON.stringify(registrationDoc)).toString('base64')}`;
+  // Use the server's /.well-known/agent.json URL directly — embedding JSON inline
+  // as a data URI exceeds Solana's 1232-byte transaction limit.
+  const registrationUri = `${serviceUrl}/.well-known/agent.json`
 
   await registerIdentityV1(umi, {
     asset: assetAddress,
     agentRegistrationUri: registrationUri,
-  }).sendAndConfirm(umi);
+  }).sendAndConfirm(umi)
 
-  const agentIdentityPda = findAgentIdentityV1Pda(umi, { asset: assetAddress });
-  console.log('  Agent Identity PDA:    ', agentIdentityPda[0]);
+  const agentIdentityPdaTuple = findAgentIdentityV1Pda(umi, { asset: assetAddress })
+  console.log('  Agent Identity PDA:    ', agentIdentityPdaTuple[0])
 
-  // ─── 4. Register Executive Profile (one-time per operator wallet) ────────────
-  console.log('\nRegistering executive profile...');
+  // ─── 4. Register Executive Profile ───────────────────────────────────────────
+  console.log('\nRegistering executive profile...')
 
-  const executiveProfilePda = findExecutiveProfileV1Pda(umi, { authority: operator });
+  const executiveProfilePdaTuple = findExecutiveProfileV1Pda(umi, { authority: operator })
 
-  // Check if already registered to avoid error on re-runs
-  const existing = await umi.rpc.getAccount(executiveProfilePda[0]);
+  const existing = await umi.rpc.getAccount(executiveProfilePdaTuple[0])
   if (existing.exists) {
-    console.log('  Executive profile already exists — skipping.');
+    console.log('  Executive profile already exists — skipping.')
   } else {
-    await registerExecutiveV1(umi, {
-      payer: umi.payer,
-    }).sendAndConfirm(umi);
-    console.log('  Executive Profile PDA: ', executiveProfilePda[0]);
+    await registerExecutiveV1(umi, { payer: umi.payer }).sendAndConfirm(umi)
+    console.log('  Executive Profile PDA: ', executiveProfilePdaTuple[0])
   }
 
   // ─── 5. Delegate Execution ────────────────────────────────────────────────────
-  console.log('\nDelegating execution to operator...');
+  console.log('\nDelegating execution to operator...')
 
   await delegateExecutionV1(umi, {
     agentAsset: assetAddress,
-    agentIdentity: agentIdentityPda,
-    executiveProfile: executiveProfilePda,
-  }).sendAndConfirm(umi);
+    agentIdentity: agentIdentityPdaTuple,
+    executiveProfile: executiveProfilePdaTuple,
+  }).sendAndConfirm(umi)
 
-  console.log('  Delegation complete.');
+  console.log('  Delegation complete.')
 
-  // ─── Summary ─────────────────────────────────────────────────────────────────
-  console.log('\n═══════════════════════════════════════════════════════════');
-  console.log('Phase 2 complete — save these addresses:');
-  console.log('');
-  console.log(`AGENT_ASSET_ADDRESS=${assetAddress}`);
-  console.log(`AGENT_SIGNER_PDA=${assetSignerPda[0]}`);
-  console.log(`AGENT_IDENTITY_PDA=${agentIdentityPda[0]}`);
-  console.log(`EXECUTIVE_PROFILE_PDA=${executiveProfilePda[0]}`);
-  console.log('═══════════════════════════════════════════════════════════\n');
+  // ─── Verify ───────────────────────────────────────────────────────────────────
+  const identity = await safeFetchAgentIdentityV1(umi, agentIdentityPdaTuple)
+  console.log('\nIdentity registered:', identity !== null)
 
-  // Verify identity is registered
-  const identity = await safeFetchAgentIdentityV1(umi, agentIdentityPda);
-  console.log('Identity registered:', identity !== null);
+  return {
+    assetAddress:       String(assetAddress),
+    assetSignerPda:     String(assetSignerPdaTuple[0]),
+    agentIdentityPda:   String(agentIdentityPdaTuple[0]),
+    executiveProfilePda: String(executiveProfilePdaTuple[0]),
+  }
 }
 
-main().catch((err) => {
-  // Print message first
-  console.error('Error:', err?.message ?? String(err));
-
-  // If it's a SendTransactionError, print the simulation logs — these are the most useful
-  if (err?.logs?.length) {
-    console.error('\nTransaction logs:');
-    for (const line of err.logs) {
-      console.error(' ', line);
-    }
-  } else if (err?.cause?.logs?.length) {
-    console.error('\nTransaction logs:');
-    for (const line of err.cause.logs) {
-      console.error(' ', line);
-    }
-  }
-
-  process.exit(1);
-});
+// ── Standalone entry point ────────────────────────────────────────────────────
+if (import.meta.main) {
+  setupAgent()
+    .then((r) => {
+      console.log('\n═══════════════════════════════════════════════════════════')
+      console.log('Done — save these addresses:')
+      console.log('')
+      console.log(`AGENT_ASSET_ADDRESS=${r.assetAddress}`)
+      console.log(`AGENT_SIGNER_PDA=${r.assetSignerPda}`)
+      console.log(`AGENT_IDENTITY_PDA=${r.agentIdentityPda}`)
+      console.log(`EXECUTIVE_PROFILE_PDA=${r.executiveProfilePda}`)
+      console.log('═══════════════════════════════════════════════════════════\n')
+    })
+    .catch((err) => {
+      console.error('Error:', err?.message ?? String(err))
+      if (err?.logs?.length) {
+        console.error('\nTransaction logs:')
+        for (const line of err.logs) console.error(' ', line)
+      } else if (err?.cause?.logs?.length) {
+        console.error('\nTransaction logs:')
+        for (const line of err.cause.logs) console.error(' ', line)
+      }
+      process.exit(1)
+    })
+}

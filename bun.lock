@@ -4,6 +4,10 @@
   "workspaces": {
     "": {
       "name": "kinko",
+      "dependencies": {
+        "@metaplex-foundation/mpl-core": "^1.9.0",
+        "@metaplex-foundation/umi": "^1.5.1",
+      },
       "devDependencies": {
         "@types/bun": "latest",
         "concurrently": "^9.2.1",

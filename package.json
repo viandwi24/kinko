@@ -8,17 +8,24 @@
     "contract"
   ],
   "scripts": {
-    "setup": "bun run --watch apps/setup-tui/src/index.tsx",
+    "register-agent": "bun run scripts/register-agent.ts",
+    "update-agent-name": "bun run scripts/update-agent-name.ts",
+    "setup": "bun run apps/setup-tui/src/index.tsx",
     "dev:web": "bun run --cwd apps/web dev",
     "dev:server": "bun run --cwd apps/server dev",
     "dev:agent-b": "bun run --cwd apps/agent-b dev",
     "build:web": "bun run --cwd apps/web build",
     "build:contract": "cd contract && anchor build",
+    "deploy:contract": "cd contract && anchor deploy --provider.cluster devnet --provider.wallet ../data/agent-keypair.json",
     "dev": "concurrently -p \"[{name}]\" -n \"WEB,SERVER,AGENT-B\" -c \"blue,green,magenta\" \"bun run dev:web\" \"bun run dev:server\" \"bun run dev:agent-b\""
   },
   "devDependencies": {
     "@types/bun": "latest",
     "concurrently": "^9.2.1",
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@metaplex-foundation/mpl-core": "^1.9.0",
+    "@metaplex-foundation/umi": "^1.5.1"
   }
 }

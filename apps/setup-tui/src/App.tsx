@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useApp } from 'ink'
 import { SERVICES, type Env, type BaseUrls } from './config/services.js'
 import { readEnvFile, writeEnvFile } from './utils/env.js'
@@ -17,7 +17,7 @@ import { Done } from './screens/Done.js'
 type FormValues = Record<string, Record<string, string>>
 
 // Keys yang di-inject otomatis dari keypair — tidak ditampilkan saat input
-const KEYPAIR_FIELDS = ['AGENT_PRIVATE_KEY', 'OPERATOR_PRIVATE_KEY']
+const KEYPAIR_FIELDS = ['SERVER_AGENT_PRIVATE_KEY', 'OPERATOR_PRIVATE_KEY']
 
 // ── State machine ─────────────────────────────────────────────────────────────
 type Step =
@@ -108,13 +108,13 @@ export function App() {
   const handleKeypairDone = useCallback((mode: MainMenuChoice, env: Env, baseUrls: BaseUrls, keypair: KeypairInfo) => {
     if (mode === 'register') {
       // Jalur register-only: langsung ke agent-register, baca dari apps/server/.env
-      // AgentRegister akan mapping AGENT_PRIVATE_KEY → OPERATOR_PRIVATE_KEY dst.
+      // AgentRegister akan mapping SERVER_AGENT_PRIVATE_KEY → OPERATOR_PRIVATE_KEY dst.
       const serverExisting = readEnvFile('apps/server/.env')
       // Override keypair jika user generate baru di step ini
       const serverValues: Record<string, string> = {
         ...serverExisting,
-        AGENT_PRIVATE_KEY: keypair.secretKeyJson,
-        AGENT_A_URL: serverExisting['AGENT_A_URL'] || baseUrls.serverUrl,
+        SERVER_AGENT_PRIVATE_KEY: keypair.secretKeyJson,
+        SERVER_URL: serverExisting['SERVER_URL'] || baseUrls.serverUrl,
       }
       setStep({
         type: 'agent-register',
@@ -227,7 +227,7 @@ export function App() {
 
     generateAgentMetadata(baseUrls.serverUrl)
 
-    // Trigger agent register jika server dipilih (butuh AGENT_PRIVATE_KEY + RPC)
+    // Trigger agent register jika server dipilih (butuh SERVER_AGENT_PRIVATE_KEY + RPC)
     if (services.includes('server')) {
       setStep({ type: 'agent-register', env, baseUrls, services, values, written, skipped })
     } else {

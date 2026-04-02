@@ -20,8 +20,7 @@ export function generateAgentMetadata(serverUrl: string, assetAddress = ''): Age
   const metadata: AgentMetadata = {
     type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
     name: 'Kinko',
-    description:
-      'An autonomous AI agent funded by Solana staking yield. Users deposit SOL into a personal treasury; staking yield pays for AI requests automatically. Supports multi-model via OpenRouter and delegates to specialist agents via A2A x402 payments.',
+    description: '金庫 — The vault seals your SOL. The agent awakens. Neither shall stop.',
     image: `${serverUrl}/logo.png`,
     services: [
       {

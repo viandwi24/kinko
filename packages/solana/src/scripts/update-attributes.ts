@@ -1,7 +1,7 @@
 /**
  * update-attributes.ts
  *
- * Updates the Attributes plugin on Agent A's Core asset.
+ * Updates the Attributes plugin on Kinko Agent's Core asset.
  * Called by the agent backend after each request.
  *
  * Usage (as module):

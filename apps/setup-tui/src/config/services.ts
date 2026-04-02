@@ -63,14 +63,14 @@ export const SERVICES: ServiceDef[] = [
         default: () => 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL',
       },
       {
-        key: 'AGENT_PRIVATE_KEY',
+        key: 'SERVER_AGENT_PRIVATE_KEY',
         label: 'Agent Private Key',
         hint: 'JSON byte array — otomatis dari keypair yang di-generate',
         required: true,
         secret: true,
       },
       {
-        key: 'AGENT_A_ASSET_ADDRESS',
+        key: 'SERVER_AGENT_ASSET_ADDRESS',
         label: 'Agent Asset Address (MPL Core)',
         hint: 'Diisi otomatis setelah registrasi Metaplex. Kosongkan jika belum ada.',
       },
@@ -93,7 +93,7 @@ export const SERVICES: ServiceDef[] = [
         default: () => '3001',
       },
       {
-        key: 'AGENT_A_URL',
+        key: 'SERVER_URL',
         label: 'Server Base URL',
         hint: 'URL publik server ini — dipakai di agent metadata & agent card',
         default: (_env, b) => b.serverUrl,
@@ -173,7 +173,7 @@ export const SERVICES: ServiceDef[] = [
         default: () => 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL',
       },
       {
-        key: 'NEXT_PUBLIC_AGENT_ASSET_ADDRESS',
+        key: 'NEXT_PUBLIC_SERVER_AGENT_ASSET_ADDRESS',
         label: 'Agent Asset Address',
         hint: 'Diisi otomatis setelah registrasi Metaplex.',
       },

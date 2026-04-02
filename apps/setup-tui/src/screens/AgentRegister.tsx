@@ -29,9 +29,9 @@ export function AgentRegister({
       const env: Record<string, string> = { ...process.env as Record<string, string> }
 
       // Map: apps/server field → setup-agent.ts env var name
-      if (serverValues['AGENT_PRIVATE_KEY'])  env['OPERATOR_PRIVATE_KEY'] = serverValues['AGENT_PRIVATE_KEY']
+      if (serverValues['SERVER_AGENT_PRIVATE_KEY'])  env['OPERATOR_PRIVATE_KEY'] = serverValues['SERVER_AGENT_PRIVATE_KEY']
       if (serverValues['SOLANA_RPC_URL'])     env['SOLANA_RPC_URL']       = serverValues['SOLANA_RPC_URL']
-      if (serverValues['AGENT_A_URL'])        env['AGENT_SERVICE_URL']    = serverValues['AGENT_A_URL']
+      if (serverValues['SERVER_URL'])         env['AGENT_SERVICE_URL']    = serverValues['SERVER_URL']
 
       try {
         const proc = Bun.spawn(
@@ -66,12 +66,12 @@ export function AgentRegister({
         if (addresses.AGENT_ASSET_ADDRESS) {
           // apps/server/.env
           if (selectedServices.includes('server') && allValues.server) {
-            const updated = { ...allValues.server, AGENT_A_ASSET_ADDRESS: addresses.AGENT_ASSET_ADDRESS }
+            const updated = { ...allValues.server, SERVER_AGENT_ASSET_ADDRESS: addresses.AGENT_ASSET_ADDRESS }
             writeEnvFile('apps/server/.env', updated)
           }
           // apps/web/.env.local
           if (selectedServices.includes('web') && allValues.web) {
-            const updated = { ...allValues.web, NEXT_PUBLIC_AGENT_ASSET_ADDRESS: addresses.AGENT_ASSET_ADDRESS }
+            const updated = { ...allValues.web, NEXT_PUBLIC_SERVER_AGENT_ASSET_ADDRESS: addresses.AGENT_ASSET_ADDRESS }
             writeEnvFile('apps/web/.env.local', updated)
           }
         }

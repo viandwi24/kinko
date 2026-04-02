@@ -1,5 +1,5 @@
 /**
- * a2a.ts — Agent-to-Agent: Agent A discovers and hires Agent B via x402.
+ * a2a.ts — Agent-to-Agent: Kinko Agent discovers and hires Agent B via x402.
  *
  * Flow:
  *   1. Discover Agent B via agent card URL (configured via env for MVP)

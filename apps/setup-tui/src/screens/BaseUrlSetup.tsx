@@ -21,7 +21,7 @@ function defaultFrontendUrl(env: Env) {
 function loadExistingUrls(env: Env) {
   const serverEnv = readEnvFile('apps/server/.env')
   return {
-    serverUrl: serverEnv['AGENT_A_URL'] || defaultServerUrl(env),
+    serverUrl: serverEnv['SERVER_URL'] || defaultServerUrl(env),
     frontendUrl: serverEnv['FRONTEND_URL'] || defaultFrontendUrl(env),
   }
 }
