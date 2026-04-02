@@ -1,0 +1,22 @@
+{
+  "name": "@kinko/solana",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "setup-agent": "bun run src/scripts/setup-agent.ts",
+    "update-attributes": "bun run src/scripts/update-attributes.ts",
+    "query-agents": "bun run src/scripts/query-agents.ts"
+  },
+  "dependencies": {
+    "@metaplex-foundation/mpl-agent-registry": "latest",
+    "@metaplex-foundation/mpl-core": "latest",
+    "@metaplex-foundation/mpl-toolbox": "latest",
+    "@metaplex-foundation/umi": "latest",
+    "@metaplex-foundation/umi-bundle-defaults": "latest",
+    "@metaplex-foundation/digital-asset-standard-api": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

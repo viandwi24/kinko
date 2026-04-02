@@ -1,28 +1,29 @@
 # Current
 
 ## Phase
-Phase 1 — Anchor Treasury (selesai) → siap Phase 2
+Phase 2 — Agent Identity (Metaplex Core Asset + Agent Registry)
 
 ## Currently Working On
-- Phase 1 selesai: kinko-treasury Anchor program dengan 7 tests passing
-- Next: Phase 2 Agent Identity (Metaplex Core Asset + Agent Registry)
+- Creating `packages/solana/` (`@kinko/solana`) with agent setup scripts
+- Setup Core Asset, registerIdentityV1, registerExecutiveV1, delegateExecutionV1
 
 ## Relevant Files
-- `contract/programs/kinko-treasury/src/lib.rs` — program entry point
-- `contract/programs/kinko-treasury/src/state/user_treasury.rs` — UserTreasury PDA struct
-- `contract/programs/kinko-treasury/src/instructions/` — initialize, deposit, deduct_yield, set_agent
-- `contract/programs/kinko-treasury/src/errors.rs` — KinkoError codes
-- `contract/tests/kinko-treasury.ts` — 7 integration tests
-- `docs/plans/phase-2-agent-identity.md` — next phase
+- `packages/solana/src/scripts/setup-agent.ts` — create Core Asset + register identity + delegate
+- `packages/solana/src/scripts/update-attributes.ts` — update agent attributes after each request
+- `packages/solana/src/scripts/query-agents.ts` — query agents from DAS API
+- `packages/solana/src/umi.ts` — Umi setup helper
+- `docs/plans/phase-2-agent-identity.md` — phase plan
 
 ## Important Context / Temporary Decisions
 - Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`
 - Contract folder: `contract/` (bukan `programs/` atau `contracts/`)
 - Anchor 0.32.1, Bun sebagai package manager
-- Yield disimulasikan 8% APY berbasis waktu (bukan Marinade dulu) — Marinade jadi bonus
-- Frontend: `packages/web/` | Backend: `apps/agent-a/`
 - Agent wallet = Asset Signer PDA (bukan keypair), operator sebagai Executive
 - User → Agent A: yield-based | Agent A → Agent B: x402 (A2A)
+- Agent A attributes: status, total_requests, total_yield_spent, service_endpoint, version
+- Umi SDK used (not CLI) karena butuh code untuk scripts
+- ERC-8004 registration URI format untuk agentRegistrationUri
+- Devnet untuk development
 
 ## Next Up
-- Phase 2: Metaplex Core Asset + Agent Registry (registerIdentityV1, registerExecutiveV1, delegateExecutionV1)
+- Phase 3: Agent A Runtime — yield deduction dari Anchor program, LLM integration, Attributes update setelah setiap request
