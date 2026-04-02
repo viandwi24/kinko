@@ -38,7 +38,7 @@ export async function fetchSolPriceViaA2A(): Promise<A2APriceResult> {
 
   const requirements = await probeRes.json()
   const payTo = requirements.x402?.payTo
-  const amountLamports = parseInt(requirements.x402?.maxAmountRequired ?? '1000000', 10)
+  const amountLamports = parseInt(requirements.x402?.maxAmountRequired ?? '10000000', 10)
 
   if (!payTo) throw new Error('Agent B did not provide payTo address in 402 response')
 

@@ -1,22 +1,23 @@
 {
   "name": "@kinko/solana",
-  "version": "0.1.0",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
   "type": "module",
   "private": true,
-  "scripts": {
-    "setup-agent": "bun run src/scripts/setup-agent.ts",
-    "update-attributes": "bun run src/scripts/update-attributes.ts",
-    "query-agents": "bun run src/scripts/query-agents.ts"
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.5.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   },
   "dependencies": {
-    "@metaplex-foundation/mpl-agent-registry": "latest",
-    "@metaplex-foundation/mpl-core": "latest",
-    "@metaplex-foundation/mpl-toolbox": "latest",
-    "@metaplex-foundation/umi": "latest",
-    "@metaplex-foundation/umi-bundle-defaults": "latest",
-    "@metaplex-foundation/digital-asset-standard-api": "latest"
-  },
-  "devDependencies": {
-    "typescript": "^5"
+    "@metaplex-foundation/digital-asset-standard-api": "^2.0.0",
+    "@metaplex-foundation/mpl-agent-registry": "^0.2.4",
+    "@metaplex-foundation/mpl-core": "^1.9.0",
+    "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
+    "@metaplex-foundation/umi": "^1.5.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.5.1",
+    "@solana/web3.js": "1"
   }
 }

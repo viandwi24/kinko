@@ -1,32 +1,36 @@
 # Current
 
 ## Phase
-Phase 4 + 5 selesai — Frontend Dashboard + Agent B A2A
+Setup TUI selesai — siap testing end-to-end
 
 ## Currently Working On
-- Semua phase inti (1-5) sudah selesai
-- Next: Phase 6 (Token / Genesis) — optional, atau polish + deploy
+- Semua phase inti (1-5) selesai + setup TUI selesai
+- Ready untuk testing: `bun run setup` lalu `bun run dev`
 
 ## Relevant Files
-- `apps/web/app/app/page.tsx` + `components/app/` — /app page
-- `apps/web/app/app/dashboard/page.tsx` + `components/dashboard/` — /dashboard page
-- `apps/web/hooks/use-treasury.ts`, `use-agent.ts` — TanStack Query hooks
-- `apps/web/lib/api.ts` — server API client
-- `apps/web/components/wallet-provider.tsx` — Solana wallet adapter
-- `apps/agent-b/src/` — Agent B: x402 price oracle
-- `apps/server/src/services/a2a.ts` — A2A discovery + x402 payment
-- `apps/server/src/services/llm.ts` — auto-hires Agent B for price queries
+- `apps/setup-tui/src/App.tsx` — state machine 8-step TUI flow
+- `apps/setup-tui/src/screens/` — WalletFund, Preview, KeypairSetup, BaseUrlSetup, etc.
+- `apps/setup-tui/src/config/services.ts` — 4 env modes + field definitions
+- `apps/web/lib/api.ts` — SERVER_URL + all fetch helpers
+- `apps/web/hooks/use-agent.ts` — useAgentCard, useAgentHealth, useAgentMetadata
+- `apps/server/src/services/llm.ts` — Vercel AI SDK + OpenRouter
+- `apps/server/src/routes/chat.ts` — accepts model? in body
+- `apps/server/src/routes/agent-card.ts` — serves /.well-known/agent.json
+- `docs/deploy/dev.md` — full dev setup guide
+- `docs/test/0-normal-case.md` — test scenario
 
 ## Important Context / Temporary Decisions
 - Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`
 - **Keypair = env var JSON byte array** — jangan pernah pakai path ke luar folder project
-- Agent B wallet di env `AGENT_B_WALLET` (pubkey base58)
-- A2A x402 flow: probe 402 → pay SOL tx → retry with X-Payment header
-- Agent A auto-detects price queries → hires Agent B via A2A
-- Wallet adapter: Phantom + Solflare, devnet
-- NEXT_PUBLIC_AGENT_URL + NEXT_PUBLIC_SOLANA_RPC_URL needed for frontend
+- TUI step order: env-select → base-url → keypair-setup → wallet-fund → service-select → field-input → preview → agent-register → done
+- KEYPAIR_FIELDS (AGENT_PRIVATE_KEY, OPERATOR_PRIVATE_KEY) auto-filled, tidak ditampilkan di input
+- `data/` folder = gitignored, stores agent-keypair.json + agent-metadata.json
+- ngrok URL harus diisi sebagai Server URL untuk devnet (agar Metaplex registry bisa akses metadata)
+- AI: Vercel AI SDK + @openrouter/ai-sdk-provider — model per-request via body.model
+- AirdropSetup.tsx dihapus, diganti WalletFund.tsx
 
 ## Next Up
-- Phase 6: Token ($AGENT via Metaplex Genesis) — optional
-- Deploy: Vercel (web) + Railway/Fly.io (agents)
+- Test end-to-end: `bun run setup` (TUI) → `bun run dev` → deposit → chat
+- Phase 6: Token ($AGENT via Metaplex Genesis) — optional, setelah MVP works
+- Deploy: Vercel (web) + Railway/Fly.io (apps/server, apps/agent-b)
 - Polish: real Marinade staking integration

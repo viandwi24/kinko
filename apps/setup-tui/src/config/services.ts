@@ -7,40 +7,40 @@
  * Cara tambah field baru:
  * 1. Temukan ServiceDef yang relevan berdasarkan id-nya
  * 2. Tambahkan EnvField ke array fields-nya
- * 3. Isi default per env jika ada nilai standar
+ * 3. Isi default per env/baseUrls jika ada nilai standar
  *
  * 4 mode environment:
  *   dev-local    — localnet RPC (localhost:8899), semua URL localhost
- *   dev-devnet   — devnet RPC, semua URL localhost (services tetap lokal)
- *   prod-devnet  — devnet RPC, URL real/staging (isi manual)
- *   prod-mainnet — mainnet RPC, URL real (isi manual)
+ *   dev-devnet   — devnet RPC, semua URL localhost atau ngrok tunnel
+ *   prod-devnet  — devnet RPC, URL real/staging
+ *   prod-mainnet — mainnet RPC, URL real
  */
 
+import { rpcUrlForEnv } from '../utils/rpc.js'
+
 export type Env = 'dev-local' | 'dev-devnet' | 'prod-devnet' | 'prod-mainnet'
+
+export type BaseUrls = {
+  serverUrl: string
+  frontendUrl: string
+}
 
 export type EnvField = {
   key: string
   label: string
   hint?: string
-  default?: (env: Env) => string
+  default?: (env: Env, baseUrls: BaseUrls) => string
   required?: boolean
-  secret?: boolean // mask input dengan *
+  secret?: boolean
 }
 
 export type ServiceDef = {
   id: string
   name: string
   description: string
-  envFile: string // relatif dari project root
+  envFile: string
   fields: EnvField[]
 }
-
-// Helper — URL lokal jika dev, kosong jika prod (isi manual)
-function localOrEmpty(env: Env, localUrl: string): string {
-  return env === 'dev-local' || env === 'dev-devnet' ? localUrl : ''
-}
-
-import { rpcUrlForEnv } from '../utils/rpc.js'
 
 export const SERVICES: ServiceDef[] = [
   // ─────────────────────────────────────────────────────────────
@@ -65,14 +65,14 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'AGENT_PRIVATE_KEY',
         label: 'Agent Private Key',
-        hint: 'JSON byte array — run: cat keypair.json | tr -d "\\n"',
+        hint: 'JSON byte array — otomatis dari keypair yang di-generate',
         required: true,
         secret: true,
       },
       {
         key: 'AGENT_A_ASSET_ADDRESS',
         label: 'Agent Asset Address (MPL Core)',
-        hint: 'Dari output setup-agent.ts. Kosongkan jika belum ada.',
+        hint: 'Diisi otomatis setelah registrasi Metaplex. Kosongkan jika belum ada.',
       },
       {
         key: 'OPENROUTER_API_KEY',
@@ -83,8 +83,8 @@ export const SERVICES: ServiceDef[] = [
       },
       {
         key: 'AI_MODEL',
-        label: 'AI Model',
-        hint: 'Lihat semua model: https://openrouter.ai/models',
+        label: 'AI Model (default)',
+        hint: 'Lihat semua model: https://openrouter.ai/models  |  Bisa di-override per-request',
         default: () => 'openai/gpt-4o-mini',
       },
       {
@@ -93,22 +93,28 @@ export const SERVICES: ServiceDef[] = [
         default: () => '3001',
       },
       {
+        key: 'AGENT_A_URL',
+        label: 'Server Base URL',
+        hint: 'URL publik server ini — dipakai di agent metadata & agent card',
+        default: (_env, b) => b.serverUrl,
+      },
+      {
         key: 'FRONTEND_URL',
         label: 'Frontend URL (untuk CORS)',
-        hint: 'URL frontend yang diizinkan mengakses API ini',
-        default: (env) => localOrEmpty(env, 'http://localhost:3000'),
+        hint: 'URL frontend yang boleh akses API ini',
+        default: (_env, b) => b.frontendUrl,
       },
       {
         key: 'AGENT_B_URL',
         label: 'Agent B URL',
-        hint: 'URL price oracle agent untuk A2A',
-        default: (env) => localOrEmpty(env, 'http://localhost:3002'),
+        hint: 'URL price oracle agent untuk A2A — jika di local pakai localhost:3002',
+        default: (env) => env === 'dev-local' || env === 'dev-devnet' ? 'http://localhost:3002' : '',
       },
       {
         key: 'COST_PER_REQUEST_LAMPORTS',
         label: 'Cost per request (lamports)',
-        hint: '1000000 = 0.001 SOL',
-        default: () => '1000000',
+        hint: '10000000 = 0.0001 SOL',
+        default: () => '10000000',
       },
     ],
   },
@@ -130,7 +136,7 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'AGENT_B_WALLET',
         label: 'Agent B Wallet (base58 pubkey)',
-        hint: 'Penerima x402 payment. Gunakan AGENT_SIGNER_PDA dari output setup-agent.',
+        hint: 'Penerima x402 payment — diisi otomatis dari AGENT_SIGNER_PDA setelah registrasi',
         required: true,
       },
       {
@@ -153,8 +159,8 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'NEXT_PUBLIC_AGENT_URL',
         label: 'Server (API) URL',
-        hint: 'URL apps/server yang diakses dari browser',
-        default: (env) => localOrEmpty(env, 'http://localhost:3001'),
+        hint: 'URL apps/server yang diakses dari browser — gunakan ngrok URL jika tunneling',
+        default: (_env, b) => b.serverUrl,
       },
       {
         key: 'NEXT_PUBLIC_SOLANA_RPC_URL',
@@ -169,38 +175,9 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'NEXT_PUBLIC_AGENT_ASSET_ADDRESS',
         label: 'Agent Asset Address',
-        hint: 'Dari output setup-agent.ts.',
+        hint: 'Diisi otomatis setelah registrasi Metaplex.',
       },
     ],
   },
 
-  // ─────────────────────────────────────────────────────────────
-  // packages/solana — Onchain setup scripts
-  // ─────────────────────────────────────────────────────────────
-  {
-    id: 'solana',
-    name: 'Solana Scripts',
-    description: 'Onchain setup scripts (packages/solana)',
-    envFile: 'packages/solana/.env',
-    fields: [
-      {
-        key: 'SOLANA_RPC_URL',
-        label: 'Solana RPC URL',
-        default: (env) => rpcUrlForEnv(env),
-      },
-      {
-        key: 'OPERATOR_PRIVATE_KEY',
-        label: 'Operator Private Key',
-        hint: 'JSON byte array — run: cat keypair.json | tr -d "\\n"',
-        required: true,
-        secret: true,
-      },
-      {
-        key: 'AGENT_SERVICE_URL',
-        label: 'Agent Service URL',
-        hint: 'Digunakan dalam ERC-8004 registration document',
-        default: (env) => localOrEmpty(env, 'http://localhost:3001'),
-      },
-    ],
-  },
 ]

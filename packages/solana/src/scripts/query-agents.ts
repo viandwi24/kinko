@@ -11,7 +11,7 @@ import { publicKey } from '@metaplex-foundation/umi';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import { mplCore } from '@metaplex-foundation/mpl-core';
 import { mplAgentIdentity, mplAgentTools } from '@metaplex-foundation/mpl-agent-registry';
-import { dasApi } from '@metaplex-foundation/digital-asset-standard-api';
+import { dasApi, type DasApiInterface } from '@metaplex-foundation/digital-asset-standard-api';
 
 type AgentInfo = {
   address: string;
@@ -30,7 +30,7 @@ export async function queryAgentsByOwner(ownerAddress: string): Promise<AgentInf
     .use(mplAgentTools())
     .use(dasApi());
 
-  const assets = await umi.rpc.getAssetsByOwner({ owner: publicKey(ownerAddress) });
+  const assets = await (umi.rpc as unknown as DasApiInterface).getAssetsByOwner({ owner: publicKey(ownerAddress) });
 
   return assets.items
     .filter((a: any) => a.interface === 'MplCoreAsset')
@@ -59,7 +59,10 @@ export async function queryAgentsByCollection(collectionAddress: string): Promis
     .use(mplAgentTools())
     .use(dasApi());
 
-  const assets = await umi.rpc.getAssetsByCollection({ collection: publicKey(collectionAddress) });
+  const assets = await (umi.rpc as unknown as DasApiInterface).getAssetsByGroup({
+    groupKey: 'collection',
+    groupValue: collectionAddress,
+  });
 
   return assets.items
     .filter((a: any) => a.interface === 'MplCoreAsset')

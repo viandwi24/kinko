@@ -8,15 +8,17 @@
     "contract"
   ],
   "scripts": {
-    "setup": "bun run apps/setup-tui/src/index.tsx",
+    "setup": "bun run --watch apps/setup-tui/src/index.tsx",
     "dev:web": "bun run --cwd apps/web dev",
     "dev:server": "bun run --cwd apps/server dev",
     "dev:agent-b": "bun run --cwd apps/agent-b dev",
     "build:web": "bun run --cwd apps/web build",
-    "build:contract": "cd contract && anchor build"
+    "build:contract": "cd contract && anchor build",
+    "dev": "concurrently -p \"[{name}]\" -n \"WEB,SERVER,AGENT-B\" -c \"blue,green,magenta\" \"bun run dev:web\" \"bun run dev:server\" \"bun run dev:agent-b\""
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "concurrently": "^9.2.1",
     "typescript": "^5"
   }
 }

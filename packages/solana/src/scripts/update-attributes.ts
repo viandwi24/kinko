@@ -6,7 +6,7 @@
  *
  * Usage (as module):
  *   import { updateAgentAttributes } from './update-attributes.js'
- *   await updateAgentAttributes(assetAddress, { total_requests: '42', total_yield_spent: '1000000' })
+ *   await updateAgentAttributes(assetAddress, { total_requests: '42', total_yield_spent: '10000000' })
  *
  * Usage (as script):
  *   AGENT_ASSET_ADDRESS=<addr> ATTR_KEY=total_requests ATTR_VALUE=42 bun run update-attributes.ts
@@ -14,7 +14,7 @@
 
 import { publicKey } from '@metaplex-foundation/umi';
 import { fetchAsset, updatePlugin } from '@metaplex-foundation/mpl-core';
-import { createKinkoUmi } from '../umi.js';
+import { createKinkoUmi } from '../umi';
 
 export type AgentAttributes = Partial<{
   status: string;

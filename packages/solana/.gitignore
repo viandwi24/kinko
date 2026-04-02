@@ -32,19 +32,3 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
-
-
-# rust / anchor
-target
-**/.anchor
-**/test-ledger
-
-# anchor keys (jangan commit keypair program)
-programs/**/keypairs
-
-# secrets
-docs/refs
-.claude/settings.local.json
-.claude/settings.json
-# generated data (keypairs, metadata) — gitignored karena berisi secret
-data/

@@ -1,34 +1,37 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { resolveFromRoot, writeEnvFile, readEnvFile } from '../utils/env.js'
+import { writeEnvFile, readEnvFile } from '../utils/env.js'
+import { generateAgentMetadata } from '../utils/metadata.js'
+import type { BaseUrls } from '../config/services.js'
 
 type Status =
   | { type: 'running' }
   | { type: 'success'; addresses: Record<string, string>; output: string }
   | { type: 'error'; output: string; stderr: string }
 
-// Env vars yang perlu dipass ke subprocess dari values yang sudah diisi user
-const PASS_THROUGH = ['OPERATOR_PRIVATE_KEY', 'SOLANA_RPC_URL', 'AGENT_SERVICE_URL']
-
 export function AgentRegister({
-  solanaValues,
   selectedServices,
   allValues,
+  baseUrls,
   onDone,
 }: {
-  solanaValues: Record<string, string>
   selectedServices: string[]
   allValues: Record<string, Record<string, string>>
+  baseUrls: BaseUrls
   onDone: (addresses: Record<string, string>) => void
 }) {
   const [status, setStatus] = useState<Status>({ type: 'running' })
 
   useEffect(() => {
     async function run() {
+      // Baca env vars dari apps/server — setup-agent.ts butuh vars yang sama
+      const serverValues = allValues.server ?? readEnvFile('apps/server/.env')
       const env: Record<string, string> = { ...process.env as Record<string, string> }
-      for (const key of PASS_THROUGH) {
-        if (solanaValues[key]) env[key] = solanaValues[key]
-      }
+
+      // Map: apps/server field → setup-agent.ts env var name
+      if (serverValues['AGENT_PRIVATE_KEY'])  env['OPERATOR_PRIVATE_KEY'] = serverValues['AGENT_PRIVATE_KEY']
+      if (serverValues['SOLANA_RPC_URL'])     env['SOLANA_RPC_URL']       = serverValues['SOLANA_RPC_URL']
+      if (serverValues['AGENT_A_URL'])        env['AGENT_SERVICE_URL']    = serverValues['AGENT_A_URL']
 
       try {
         const proc = Bun.spawn(
@@ -82,6 +85,11 @@ export function AgentRegister({
               AGENT_B_WALLET: addresses.AGENT_SIGNER_PDA,
             })
           }
+        }
+
+        // Update metadata file dengan asset address yang baru didapat
+        if (addresses.AGENT_ASSET_ADDRESS) {
+          generateAgentMetadata(baseUrls.serverUrl, addresses.AGENT_ASSET_ADDRESS)
         }
 
         setStatus({ type: 'success', addresses, output: stdout })
@@ -144,20 +152,36 @@ export function AgentRegister({
       {status.type === 'error' && (
         <Box flexDirection="column" gap={1}>
           <Text color="red">✗ Registrasi gagal</Text>
-          {status.stderr && (
-            <Box flexDirection="column" gap={0}>
-              <Text bold>Error:</Text>
-              {status.stderr.split('\n').slice(0, 8).map((line, i) => (
-                <Text key={i} color="red" dimColor>  {line}</Text>
-              ))}
-            </Box>
-          )}
-          <Box flexDirection="column" gap={0}>
-            <Text dimColor>Kemungkinan penyebab:</Text>
-            <Text dimColor>  • OPERATOR_PRIVATE_KEY salah format</Text>
-            <Text dimColor>  • Tidak ada SOL di operator wallet</Text>
-            <Text dimColor>  • RPC tidak dapat dijangkau</Text>
-          </Box>
+          {status.stderr && (() => {
+            const lines = status.stderr.split('\n').filter(l => l.trim())
+            // Pisahkan error message dari transaction logs
+            const errorLines: string[] = []
+            const logLines: string[] = []
+            let inLogs = false
+            for (const line of lines) {
+              if (line.includes('Transaction logs:')) { inLogs = true; continue }
+              if (inLogs) logLines.push(line)
+              else errorLines.push(line)
+            }
+            return (
+              <Box flexDirection="column" gap={1}>
+                <Box flexDirection="column" gap={0}>
+                  <Text bold>Error:</Text>
+                  {errorLines.map((line, i) => (
+                    <Text key={i} color="red">  {line}</Text>
+                  ))}
+                </Box>
+                {logLines.length > 0 && (
+                  <Box flexDirection="column" gap={0}>
+                    <Text bold>Transaction logs:</Text>
+                    {logLines.map((line, i) => (
+                      <Text key={i} color="yellow" dimColor>  {line}</Text>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            )
+          })()}
           <Text dimColor>Enter untuk skip (bisa jalankan manual nanti)</Text>
         </Box>
       )}

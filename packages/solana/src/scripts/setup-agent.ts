@@ -12,17 +12,21 @@
  *   AGENT_SERVICE_URL    — default: http://localhost:3001
  */
 
-import { generateSigner, publicKey } from '@metaplex-foundation/umi';
+import { generateSigner } from '@metaplex-foundation/umi';
 import { create, findAssetSignerPda } from '@metaplex-foundation/mpl-core';
 import {
   registerIdentityV1,
+  findAgentIdentityV1Pda,
+  safeFetchAgentIdentityV1,
+} from '@metaplex-foundation/mpl-agent-registry/dist/src/generated/identity';
+
+import {
   registerExecutiveV1,
   delegateExecutionV1,
-  findAgentIdentityV1Pda,
   findExecutiveProfileV1Pda,
-  safeFetchAgentIdentityV1,
-} from '@metaplex-foundation/mpl-agent-registry';
-import { createKinkoUmi } from '../umi.js';
+} from '@metaplex-foundation/mpl-agent-registry/dist/src/generated/tools';
+
+import { createKinkoUmi } from '../umi';
 
 const SERVICE_URL = process.env.AGENT_SERVICE_URL ?? 'http://localhost:3001';
 
@@ -148,6 +152,21 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  // Print message first
+  console.error('Error:', err?.message ?? String(err));
+
+  // If it's a SendTransactionError, print the simulation logs — these are the most useful
+  if (err?.logs?.length) {
+    console.error('\nTransaction logs:');
+    for (const line of err.logs) {
+      console.error(' ', line);
+    }
+  } else if (err?.cause?.logs?.length) {
+    console.error('\nTransaction logs:');
+    for (const line of err.cause.logs) {
+      console.error(' ', line);
+    }
+  }
+
   process.exit(1);
 });

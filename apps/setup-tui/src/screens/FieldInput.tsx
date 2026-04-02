@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'ink'
 import TextInput from 'ink-text-input'
 import type { ServiceDef, EnvField, Env } from '../config/services.js'
@@ -24,10 +24,19 @@ export function FieldInput({
   totalFields: number
   onSubmit: (value: string) => void
 }) {
+  // Reset value setiap kali field berganti (key prop di parent memastikan remount,
+  // tapi useEffect ini jadi safety net)
   const [value, setValue] = useState(currentValue)
+  useEffect(() => { setValue(currentValue) }, [currentValue])
 
-  const progress = `${fieldNum}/${totalFields}`
+  const progress    = `${fieldNum}/${totalFields}`
   const svcProgress = `${serviceNum}/${totalServices}`
+
+  function handleSubmit(val: string) {
+    onSubmit(val)
+    // Reset segera setelah submit supaya field berikutnya mulai bersih
+    setValue('')
+  }
 
   return (
     <Box flexDirection="column" gap={1} paddingX={2} paddingY={1}>
@@ -50,8 +59,8 @@ export function FieldInput({
           <Text bold>{field.label}</Text>
           {field.required && <Text color="red">*</Text>}
         </Box>
-        {field.hint && <Text dimColor>{field.hint}</Text>}
-        <Text dimColor color="gray">{service.envFile}</Text>
+        {field.hint && <Text dimColor>  {field.hint}</Text>}
+        <Text dimColor color="gray">  → {service.envFile}</Text>
       </Box>
 
       {/* Input */}
@@ -60,13 +69,19 @@ export function FieldInput({
         <TextInput
           value={value}
           onChange={setValue}
-          onSubmit={onSubmit}
+          onSubmit={handleSubmit}
           mask={field.secret ? '*' : undefined}
-          placeholder={field.required ? '(wajib diisi)' : '(opsional — Enter untuk skip)'}
+          placeholder={
+            currentValue
+              ? field.secret ? '(sudah diisi — Enter untuk pakai, atau ketik baru)' : `(default: ${currentValue})`
+              : field.required
+                ? '(wajib diisi)'
+                : '(opsional — Enter untuk skip)'
+          }
         />
       </Box>
 
-      <Text dimColor>Enter untuk lanjut</Text>
+      <Text dimColor>Enter untuk lanjut{currentValue && !field.secret ? ` · default: ${currentValue}` : ''}</Text>
     </Box>
   )
 }

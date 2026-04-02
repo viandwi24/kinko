@@ -20,7 +20,7 @@ agentCardRoute.get('/agent-card.json', (c) => {
         description: 'Returns current SOL/USD price from Jupiter aggregator',
         payment: {
           protocol: 'x402',
-          amount: '1000000', // 0.001 SOL in lamports
+          amount: '10000000', // 0.0001 SOL in lamports
           currency: 'SOL',
         },
         inputSchema: {
