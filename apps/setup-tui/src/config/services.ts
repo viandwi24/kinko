@@ -35,18 +35,12 @@ export type ServiceDef = {
   fields: EnvField[]
 }
 
-// Helper — RPC URL per env
-function rpcUrl(env: Env): string {
-  if (env === 'dev-local')    return 'http://localhost:8899'
-  if (env === 'dev-devnet')   return 'https://api.devnet.solana.com'
-  if (env === 'prod-devnet')  return 'https://api.devnet.solana.com'
-  return 'https://api.mainnet-beta.solana.com'
-}
-
 // Helper — URL lokal jika dev, kosong jika prod (isi manual)
 function localOrEmpty(env: Env, localUrl: string): string {
   return env === 'dev-local' || env === 'dev-devnet' ? localUrl : ''
 }
+
+import { rpcUrlForEnv } from '../utils/rpc.js'
 
 export const SERVICES: ServiceDef[] = [
   // ─────────────────────────────────────────────────────────────
@@ -61,7 +55,7 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'SOLANA_RPC_URL',
         label: 'Solana RPC URL',
-        default: (env) => rpcUrl(env),
+        default: (env) => rpcUrlForEnv(env),
       },
       {
         key: 'ANCHOR_PROGRAM_ID',
@@ -125,7 +119,7 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'SOLANA_RPC_URL',
         label: 'Solana RPC URL',
-        default: (env) => rpcUrl(env),
+        default: (env) => rpcUrlForEnv(env),
       },
       {
         key: 'AGENT_B_WALLET',
@@ -159,7 +153,7 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'NEXT_PUBLIC_SOLANA_RPC_URL',
         label: 'Solana RPC URL',
-        default: (env) => rpcUrl(env),
+        default: (env) => rpcUrlForEnv(env),
       },
       {
         key: 'NEXT_PUBLIC_ANCHOR_PROGRAM_ID',
@@ -186,7 +180,7 @@ export const SERVICES: ServiceDef[] = [
       {
         key: 'SOLANA_RPC_URL',
         label: 'Solana RPC URL',
-        default: (env) => rpcUrl(env),
+        default: (env) => rpcUrlForEnv(env),
       },
       {
         key: 'OPERATOR_PRIVATE_KEY',
