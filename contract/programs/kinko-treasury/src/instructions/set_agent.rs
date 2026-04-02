@@ -14,7 +14,7 @@ pub struct SetAgent<'info> {
     pub owner: Signer<'info>,
 }
 
-pub fn handler(context: Context<SetAgent>, agent: Pubkey) -> Result<()> {
+pub fn handle(context: Context<SetAgent>, agent: Pubkey) -> Result<()> {
     context.accounts.treasury.agent = agent;
     Ok(())
 }

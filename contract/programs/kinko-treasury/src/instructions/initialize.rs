@@ -18,7 +18,7 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(context: Context<Initialize>) -> Result<()> {
+pub fn handle(context: Context<Initialize>) -> Result<()> {
     let treasury = &mut context.accounts.treasury;
     treasury.owner = context.accounts.owner.key();
     treasury.agent = Pubkey::default();

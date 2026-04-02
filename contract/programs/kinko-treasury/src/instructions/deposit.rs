@@ -19,7 +19,7 @@ pub struct Deposit<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(context: Context<Deposit>, amount_lamports: u64) -> Result<()> {
+pub fn handle(context: Context<Deposit>, amount_lamports: u64) -> Result<()> {
     require!(amount_lamports > 0, KinkoError::ZeroAmount);
 
     system_program::transfer(

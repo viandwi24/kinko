@@ -1,4 +1,14 @@
-# kinko
+<div align="center">
+    <p align="center">
+        <a target="_blank">
+            <img src="./assets/kinko_logo.svg" alt="Kinko" width="70" height="70">
+            <h1 align="center">Kinko</h1>
+        </a>
+        <p align="center">
+            A simple CLI tool to manage your AI agents.
+        </p>
+    </p>
+</div>
 
 To install dependencies:
 

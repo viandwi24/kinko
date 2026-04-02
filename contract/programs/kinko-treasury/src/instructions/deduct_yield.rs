@@ -20,7 +20,7 @@ pub struct DeductYield<'info> {
     pub recipient: SystemAccount<'info>,
 }
 
-pub fn handler(context: Context<DeductYield>, amount_lamports: u64) -> Result<()> {
+pub fn handle(context: Context<DeductYield>, amount_lamports: u64) -> Result<()> {
     require!(amount_lamports > 0, KinkoError::ZeroAmount);
 
     let current_timestamp = Clock::get()?.unix_timestamp;

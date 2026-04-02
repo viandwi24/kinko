@@ -1,30 +1,28 @@
 # Current
 
 ## Phase
-Phase 0 — Scaffold (selesai) → siap Phase 1
+Phase 1 — Anchor Treasury (selesai) → siap Phase 2
 
 ## Currently Working On
-- Phase 0 selesai: web frontend + agent-a backend sudah di-scaffold
-- Next: Phase 1 Anchor Treasury
+- Phase 1 selesai: kinko-treasury Anchor program dengan 7 tests passing
+- Next: Phase 2 Agent Identity (Metaplex Core Asset + Agent Registry)
 
 ## Relevant Files
-- `packages/web/` — Next.js 16, React 19, shadcn Radix Nova, TanStack Query, Zustand, Framer Motion
-- `packages/web/app/page.tsx` — Landing page
-- `packages/web/app/providers.tsx` — TanStack Query provider
-- `packages/web/components/landing/` — Navbar, Hero, HowItWorks, Features, CTA
-- `apps/agent-a/` — Hono backend, OpenAI, Bun runtime
-- `apps/agent-a/src/index.ts` — entry point port 3001
-- `docs/plans/phase-1-anchor-treasury.md` — next phase
+- `contract/programs/kinko-treasury/src/lib.rs` — program entry point
+- `contract/programs/kinko-treasury/src/state/user_treasury.rs` — UserTreasury PDA struct
+- `contract/programs/kinko-treasury/src/instructions/` — initialize, deposit, deduct_yield, set_agent
+- `contract/programs/kinko-treasury/src/errors.rs` — KinkoError codes
+- `contract/tests/kinko-treasury.ts` — 7 integration tests
+- `docs/plans/phase-2-agent-identity.md` — next phase
 
 ## Important Context / Temporary Decisions
-- Project name: **Kinko**
-- Monorepo: Bun workspaces (TS) + Cargo (Rust) — pakai `bun`, bukan `npm`/`node`
-- Frontend: `packages/web/` (bukan `apps/`)
-- No axios — pakai native fetch
-- shadcn on-demand: add komponen saat dibutuhkan via `bunx --bun shadcn@latest add <component>`
+- Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`
+- Contract folder: `contract/` (bukan `programs/` atau `contracts/`)
+- Anchor 0.32.1, Bun sebagai package manager
+- Yield disimulasikan 8% APY berbasis waktu (bukan Marinade dulu) — Marinade jadi bonus
+- Frontend: `packages/web/` | Backend: `apps/agent-a/`
 - Agent wallet = Asset Signer PDA (bukan keypair), operator sebagai Executive
-- User → Agent A: yield-based (bukan x402)
-- Agent A → Agent B: x402 (A2A)
+- User → Agent A: yield-based | Agent A → Agent B: x402 (A2A)
 
 ## Next Up
-- Phase 1: Anchor program agent-treasury (per-user PDA, principal lock, Marinade CPI)
+- Phase 2: Metaplex Core Asset + Agent Registry (registerIdentityV1, registerExecutiveV1, delegateExecutionV1)
