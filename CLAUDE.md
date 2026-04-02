@@ -163,6 +163,34 @@ Update only when the architecture or product direction meaningfully changes. The
 - **Language:** TypeScript throughout (Bun runs TS natively, no build step needed for scripts)
 - **Project name:** Kinko
 
+### Setup TUI — Wajib Diupdate Saat Ada Config Baru
+
+Project ini punya interactive setup CLI di `apps/setup-tui/`. Setiap kali kamu:
+- Menambahkan **env var baru** ke salah satu service
+- Menambahkan **runtime config baru** yang perlu diisi user
+- Membuat **service atau app baru** yang butuh file `.env`
+
+**Kamu WAJIB** menambahkan field atau service-nya ke:
+
+```
+apps/setup-tui/src/config/services.ts
+```
+
+File ini adalah satu-satunya sumber kebenaran untuk setup TUI. Format field:
+
+```ts
+{
+  key: 'NAMA_ENV_VAR',
+  label: 'Label yang tampil di TUI',
+  hint: 'Penjelasan singkat cara mengisinya',        // opsional
+  default: (env) => env === 'dev' ? 'nilai-dev' : '', // opsional
+  required: true,   // jika wajib diisi
+  secret: true,     // jika harus di-mask (API key, private key)
+}
+```
+
+**Cara jalankan setup:** `bun run setup` dari root project.
+
 ## Skills
 
 ### Metaplex

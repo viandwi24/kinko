@@ -1,0 +1,19 @@
+{
+  "name": "@kinko/setup-tui",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.tsx"
+  },
+  "dependencies": {
+    "ink": "^5.2.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}

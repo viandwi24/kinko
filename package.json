@@ -8,6 +8,7 @@
     "contract"
   ],
   "scripts": {
+    "setup": "bun run apps/setup-tui/src/index.tsx",
     "dev:web": "bun run --cwd apps/web dev",
     "dev:server": "bun run --cwd apps/server dev",
     "dev:agent-b": "bun run --cwd apps/agent-b dev",
