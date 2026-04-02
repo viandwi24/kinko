@@ -5,7 +5,7 @@
             <h1 align="center">Kinko</h1>
         </a>
         <p align="center">
-            A simple CLI tool to manage your AI agents.
+            金庫 — The vault seals your SOL. The agent awakens. Neither shall stop.
         </p>
     </p>
 </div>
