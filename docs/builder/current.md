@@ -1,27 +1,30 @@
 # Current
 
 ## Phase
-Planning — menunggu review dan approval plans sebelum mulai build
+Phase 0 — Scaffold (selesai) → siap Phase 1
 
 ## Currently Working On
-- Plans sudah dibuat di `docs/plans/`, menunggu review dari owner
+- Phase 0 selesai: web frontend + agent-a backend sudah di-scaffold
+- Next: Phase 1 Anchor Treasury
 
 ## Relevant Files
-- `docs/plans/phase-0-scaffold.md` — monorepo boilerplate
-- `docs/plans/phase-1-anchor-treasury.md` — Anchor program
-- `docs/plans/phase-2-agent-identity.md` — Core Asset + Attributes
-- `docs/plans/phase-3-agent-runtime.md` — Agent A + Agent B HTTP server
-- `docs/plans/phase-4-token-economy.md` — Genesis + buyback
-- `docs/plans/phase-5-frontend.md` — Next.js dashboard
+- `packages/web/` — Next.js 16, React 19, shadcn Radix Nova, TanStack Query, Zustand, Framer Motion
+- `packages/web/app/page.tsx` — Landing page
+- `packages/web/app/providers.tsx` — TanStack Query provider
+- `packages/web/components/landing/` — Navbar, Hero, HowItWorks, Features, CTA
+- `apps/agent-a/` — Hono backend, OpenAI, Bun runtime
+- `apps/agent-a/src/index.ts` — entry point port 3001
+- `docs/plans/phase-1-anchor-treasury.md` — next phase
 
 ## Important Context / Temporary Decisions
 - Project name: **Kinko**
-- **Monorepo:** Bun workspaces (TS) + Cargo workspace (Rust) — pakai `bun`, bukan `npm`/`node`
-- Marinade Finance (mSOL) untuk liquid staking
-- Anchor 0.31.x untuk smart contract treasury
-- Agent B hanya demo A2A — bukan full product feature
-- POV: Public User, Token Holder, Genesis Participant, Operator (CLI only)
+- Monorepo: Bun workspaces (TS) + Cargo (Rust) — pakai `bun`, bukan `npm`/`node`
+- Frontend: `packages/web/` (bukan `apps/`)
+- No axios — pakai native fetch
+- shadcn on-demand: add komponen saat dibutuhkan via `bunx --bun shadcn@latest add <component>`
+- Agent wallet = Asset Signer PDA (bukan keypair), operator sebagai Executive
+- User → Agent A: yield-based (bukan x402)
+- Agent A → Agent B: x402 (A2A)
 
 ## Next Up
-- Owner review semua phase plans
-- Setelah approved → mulai Phase 0 (scaffold)
+- Phase 1: Anchor program agent-treasury (per-user PDA, principal lock, Marinade CPI)

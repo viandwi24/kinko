@@ -4,8 +4,14 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "contract"
   ],
+  "scripts": {
+    "dev:web": "bun run --cwd packages/web dev",
+    "build:web": "bun run --cwd packages/web build",
+    "build:contract": "cd contract && anchor build"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "typescript": "^5"

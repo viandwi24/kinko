@@ -44,3 +44,5 @@ programs/**/keypairs
 
 # secrets
 docs/refs
+.claude/settings.local.json
+.claude/settings.json
