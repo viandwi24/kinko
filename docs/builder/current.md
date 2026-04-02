@@ -1,36 +1,42 @@
 # Current
 
 ## Phase
-Setup TUI selesai — siap testing end-to-end
+A2A discovery via Metaplex registry — refactor selesai, perlu Helius API key + agent lain di registry
 
 ## Currently Working On
-- Semua phase inti (1-5) selesai + setup TUI selesai
-- Ready untuk testing: `bun run setup` lalu `bun run dev`
+- A2A discovery flow sudah diimplementasi, belum ditest end-to-end
+- Perlu: HELIUS_API_KEY di apps/server/.env + minimal 1 agent lain terdaftar di registry
 
 ## Relevant Files
-- `apps/setup-tui/src/App.tsx` — state machine 8-step TUI flow
-- `apps/setup-tui/src/screens/` — WalletFund, Preview, KeypairSetup, BaseUrlSetup, etc.
-- `apps/setup-tui/src/config/services.ts` — 4 env modes + field definitions
-- `apps/web/lib/api.ts` — SERVER_URL + all fetch helpers
-- `apps/web/hooks/use-agent.ts` — useAgentCard, useAgentHealth, useAgentMetadata
-- `apps/server/src/services/llm.ts` — Vercel AI SDK + OpenRouter
-- `apps/server/src/routes/chat.ts` — accepts model? in body
-- `apps/server/src/routes/agent-card.ts` — serves /.well-known/agent.json
-- `docs/deploy/dev.md` — full dev setup guide
-- `docs/test/0-normal-case.md` — test scenario
+- `apps/server/src/services/treasury.ts` — yield calc (mirrors Rust, YIELD_RATE_BPS must stay in sync with contract)
+- `apps/server/src/routes/agent-card.ts` — all /.well-known/* routes, fully dynamic from config
+- `apps/server/src/config.ts` — single source of truth for server env vars
+- `apps/server/src/routes/chat.ts` — deduct yield → LLM → update attributes
+- `apps/web/components/dashboard/dashboard-shell.tsx` — dashboard with agent + smart contract sections
+- `apps/web/components/settings/settings-shell.tsx` — 2-tab settings (Agent / Program)
+- `apps/web/hooks/use-agent.ts` — useAgentCard, useAgentHealth, useServerConfig
+- `apps/web/lib/api.ts` — SERVER_URL (NEXT_PUBLIC_AGENT_URL) + all fetch helpers
+- `contract/programs/kinko-treasury/src/state/user_treasury.rs` — YIELD_RATE_BPS constant
+- `scripts/register-agent.ts` — registers agent, writes asset address back to .env
+- `scripts/update-agent-name.ts` — updates Core Asset name + URI onchain
+- `scripts/set-treasury-agent.ts` — must be run after deposit to link agent pubkey to treasury (lives in contract/scripts/)
+- `contract/scripts/set-treasury-agent.ts` — actual location (runs from contract/ for module resolution)
 
 ## Important Context / Temporary Decisions
-- Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`
-- **Keypair = env var JSON byte array** — jangan pernah pakai path ke luar folder project
-- TUI step order: env-select → base-url → keypair-setup → wallet-fund → service-select → field-input → preview → agent-register → done
-- KEYPAIR_FIELDS (AGENT_PRIVATE_KEY, OPERATOR_PRIVATE_KEY) auto-filled, tidak ditampilkan di input
-- `data/` folder = gitignored, stores agent-keypair.json + agent-metadata.json
-- ngrok URL harus diisi sebagai Server URL untuk devnet (agar Metaplex registry bisa akses metadata)
-- AI: Vercel AI SDK + @openrouter/ai-sdk-provider — model per-request via body.model
-- AirdropSetup.tsx dihapus, diganti WalletFund.tsx
+- Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL` — deployed on devnet
+- **YIELD_RATE_BPS must be kept in sync**: `contract/programs/kinko-treasury/src/state/user_treasury.rs` AND `apps/server/src/services/treasury.ts` — both set to 800 (8% APY)
+- **treasury.agent field**: after initialize, agent = Pubkey::default(). Must call `set_agent` via `bun run set-treasury-agent` before chat works
+- **Frontend only needs NEXT_PUBLIC_AGENT_URL** — all other config (programId, rpcUrl, agentAssetAddress) fetched from GET /api/config
+- All JSON metadata (agent.json, metadata.json, agent-card.json) are dynamic server routes — no files
+- Scripts in `scripts/` use dynamic import after setting process.env (static import runs before env is set)
+- `data/agent-keypair.json` = upgrade authority for the Anchor program on devnet
+- ngrok URL as SERVER_URL required so Metaplex registry can access /.well-known/metadata.json
+- COST_PER_REQUEST_LAMPORTS=1000000 (0.001 SOL per chat request)
+- Agent asset visible at: https://www.metaplex.com/agents/49r61vKJVDrvWRv9EnoW5uDWQ4WS4TK8bAXM7U7rkZMq?network=solana-devnet
 
 ## Next Up
-- Test end-to-end: `bun run setup` (TUI) → `bun run dev` → deposit → chat
-- Phase 6: Token ($AGENT via Metaplex Genesis) — optional, setelah MVP works
-- Deploy: Vercel (web) + Railway/Fly.io (apps/server, apps/agent-b)
-- Polish: real Marinade staking integration
+- Set HELIUS_API_KEY di apps/server/.env (dapat dari helius.dev)
+- Register agent lain di devnet yang punya skill berbeda (atau pakai agent dari tim lain)
+- Test A2A end-to-end: tanya "SOL price" → discovery → x402 payment → 2 tx onchain
+- Real Marinade staking integration (replace simulated yield)
+- Deploy: Vercel (web) + Railway/Fly.io (server)

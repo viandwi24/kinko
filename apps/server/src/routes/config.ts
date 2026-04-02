@@ -6,7 +6,7 @@ export const configRoute = new Hono()
 configRoute.get('/', (c) => {
   return c.json({
     programId: config.programId,
-    rpcUrl: config.rpcUrl,
+    rpcUrl: config.publicRpcUrl,
     agentAssetAddress: config.agentAssetAddress,
   })
 })

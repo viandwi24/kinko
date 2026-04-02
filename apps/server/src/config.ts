@@ -11,9 +11,11 @@ function loadKeypairFromEnv(): Keypair {
 
 export const config = {
   rpcUrl: process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
+  publicRpcUrl: process.env.PUBLIC_RPC_URL ?? process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
   programId: process.env.ANCHOR_PROGRAM_ID ?? 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL',
   agentName: process.env.SERVER_AGENT_NAME ?? 'Kinko',
   agentAssetAddress: process.env.SERVER_AGENT_ASSET_ADDRESS ?? '',
+  pricesAgentAssetAddress: process.env.KINKO_PRICES_ASSET_ADDRESS ?? '',
   agentServiceUrl: process.env.SERVER_URL ?? 'http://localhost:3001',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
   /** Cost deducted per chat request: default 0.001 SOL */

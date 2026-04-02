@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-04-03 — A2A discovery via Metaplex registry
+
+- Hapus `apps/agent-b/` dan `apps/setup-tui/` — tidak lagi relevan
+- Rewrite `apps/server/src/services/a2a.ts`: discovery via Helius DAS API (`getAssetsByCreator`), fetch agent-card.json dari setiap asset, filter by skill, x402 probe→pay→retry
+- Update `apps/server/src/services/llm.ts`: pakai `callSkillViaA2A(skill)` bukan hardcoded Agent B URL
+- `SKILL_TRIGGERS` array di llm.ts — mudah tambah skill baru
+- Hapus `AGENT_B_URL` dari .env dan .env.example, ganti dengan `HELIUS_API_KEY`
+- Hapus `dev:agent-b` dari root package.json scripts
+- Files: `apps/server/src/services/a2a.ts`, `apps/server/src/services/llm.ts`, `apps/server/.env.example`, `package.json`
+
+## 2026-04-02 — End-to-end verified + polish
+
+- Deployed Anchor program `kinko-treasury` ke devnet (`aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`)
+- Added `bun run deploy:contract` script ke root `package.json`
+- Fixed `set_agent` — treasury.agent was Pubkey::default() after initialize; added `contract/scripts/set-treasury-agent.ts` + `bun run set-treasury-agent`
+- Fixed YIELD_RATE_BPS sync bug — server was using 1_000_000 (test) while contract used 800; both back to 800 (8% APY)
+- Lowered `COST_PER_REQUEST_LAMPORTS` to 1_000_000 (0.001 SOL)
+- Dynamic `/.well-known/agent.json` — removed file dependency (`data/agent-metadata.json`), now fully from config
+- `/.well-known/agent-card.json` — uses `config.agentName` instead of hardcoded 'Kinko'
+- Added `config.frontendUrl` — `services.web` in agent.json now points to FRONTEND_URL
+- Dashboard: added Smart Contract section (Program ID, Agent Asset, Network)
+- Settings: split into 2 tabs — Agent (status, identity, Metaplex link) + Program (Anchor program, treasury, deposit estimator)
+- Dashboard agent name now dynamic from `useAgentCard()` instead of hardcoded
+- `scripts/register-agent.ts` — removed data/agent-metadata.json write block
+- End-to-end flow verified: deposit SOL → yield accrues → chat deducts yield → tx hash confirmed onchain
+- Files: `contract/programs/kinko-treasury/src/state/user_treasury.rs`, `apps/server/src/services/treasury.ts`, `apps/server/src/config.ts`, `apps/server/src/routes/agent-card.ts`, `apps/web/components/dashboard/dashboard-shell.tsx`, `apps/web/components/settings/settings-shell.tsx`, `contract/scripts/set-treasury-agent.ts`, `package.json`
+
 ## 2026-04-02 — Rename: agent-a → server, packages/web → apps/web
 
 - Renamed `apps/agent-a/` → `apps/server/` (package name `@kinko/server`)

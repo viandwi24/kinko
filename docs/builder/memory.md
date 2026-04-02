@@ -36,6 +36,44 @@ Fokus pada 3 loop ini dulu, score boosters hanya setelah core selesai:
 
 Agent B bukan fitur produk — dia adalah **saksi A2A yang terverifikasi onchain**. Judges perlu lihat dua Core Asset berbeda, dua wallet berbeda, dua transaksi berbeda.
 
+## YIELD_RATE_BPS Harus Sinkron
+
+`YIELD_RATE_BPS` ada di DUA tempat dan harus selalu sama nilainya:
+1. `contract/programs/kinko-treasury/src/state/user_treasury.rs` — dipakai onchain di `deduct_yield`
+2. `apps/server/src/services/treasury.ts` — dipakai server untuk pre-check sebelum kirim tx
+
+Kalau beda, server akan bilang "cukup yield" tapi contract reject dengan `InsufficientYield`.
+Current value: `800` (8% APY).
+
+## set_agent Wajib Dipanggil Setelah Initialize Treasury
+
+`initialize` di contract set `treasury.agent = Pubkey::default()`. `deduct_yield` punya constraint `has_one = agent` — kalau agent belum di-set, semua chat request gagal dengan `ConstraintHasOne`.
+
+Jalankan: `bun run set-treasury-agent` setelah user pertama kali deposit.
+Script ada di: `contract/scripts/set-treasury-agent.ts` (harus dari contract/ dir agar resolve @coral-xyz/anchor).
+
+## Anchor Module Resolution
+
+Script yang import `@coral-xyz/anchor` harus ada di dalam `contract/` atau dijalankan dengan CWD `contract/` — Bun resolve dari lokasi file, bukan CWD. Script di root `scripts/` yang butuh anchor tidak bisa resolve modulnya dari sana.
+
+## Frontend Config dari Server
+
+Web frontend hanya butuh satu env var: `NEXT_PUBLIC_AGENT_URL`. Semua info lain (programId, rpcUrl, agentAssetAddress) di-fetch dari `GET /api/config`. Tidak ada `NEXT_PUBLIC_ANCHOR_PROGRAM_ID` atau sejenisnya di web.
+
+## Dynamic Metadata Routes
+
+Semua JSON metadata dilayani sebagai dynamic server routes — tidak ada file JSON yang ditulis ke disk:
+- `/.well-known/agent.json` — ERC-8004, dari config
+- `/.well-known/metadata.json` — NFT/Metaplex standard, dari env
+- `/.well-known/agent-card.json` — A2A, dari config
+- `/.well-known/logo.png` — static file dari `assets/kinko_logo.png`
+
+## Anchor Program Devnet
+
+Program `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL` sudah deployed di devnet.
+Upgrade authority: `data/agent-keypair.json`.
+Deploy: `bun run deploy:contract` (build dulu dengan `bun run build:contract`).
+
 ## Existing Docs (dari sebelum setup)
 
 - `docs/hk/idea.md` — Full product concept, demo script, revenue model, technical architecture

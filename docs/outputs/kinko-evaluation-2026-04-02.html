@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinko — Hackathon Judge Evaluation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080810;
+      --surface: #0f0f1a;
+      --card: #13131f;
+      --border: #1e1e32;
+      --purple: #7c3aed;
+      --purple-light: #a855f7;
+      --green: #14F195;
+      --green-dim: #0fa06b;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a0a2e 50%, #0a1628 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 36px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(20,241,149,0.10) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      color: var(--purple-light);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    .tagline {
+      color: var(--text-dim);
+      font-size: 1.05rem;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .meta-row span { display: flex; align-items: center; gap: 5px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 30px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--purple-light);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── EXECUTIVE SUMMARY ── */
+    .summary p { color: var(--text-dim); margin-bottom: 12px; font-size: 0.95rem; }
+    .summary p:last-child { margin-bottom: 0; }
+
+    /* ── REQUIREMENT COVERAGE ── */
+    .req-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .req-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .req-status {
+      font-size: 1.3rem;
+      min-width: 28px;
+      padding-top: 1px;
+    }
+    .req-body {}
+    .req-body strong { font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 4px; }
+    .req-body p { font-size: 0.88rem; color: var(--text-dim); }
+
+    /* ── SCORECARD ── */
+    .score-total-box {
+      background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(20,241,149,0.05));
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 10px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .score-total-label { font-size: 0.85rem; color: var(--text-muted); }
+    .score-total-value { font-size: 2.8rem; font-weight: 900; color: var(--green); font-family: var(--mono); }
+    .score-total-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    .score-row {
+      margin-bottom: 18px;
+    }
+    .score-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .score-row-name { font-size: 0.9rem; color: var(--text); }
+    .score-row-weight { font-size: 0.78rem; color: var(--text-muted); }
+    .score-row-number {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .score-row-rationale {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+    .bar-track {
+      height: 8px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .bar-purple { background: linear-gradient(90deg, var(--purple), var(--purple-light)); }
+    .bar-green  { background: linear-gradient(90deg, var(--green-dim), var(--green)); }
+    .bar-yellow { background: linear-gradient(90deg, #d97706, var(--yellow)); }
+    .bar-blue   { background: linear-gradient(90deg, #1d4ed8, #60a5fa); }
+    .bar-teal   { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
+
+    /* ── LISTS ── */
+    .eval-list { list-style: none; }
+    .eval-list li {
+      padding: 8px 0 8px 24px;
+      position: relative;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .eval-list li:last-child { border-bottom: none; }
+    .eval-list li::before {
+      content: attr(data-icon);
+      position: absolute;
+      left: 0;
+    }
+    .strength-list li::before  { content: '✦'; color: var(--green); }
+    .weakness-list li::before  { content: '◆'; color: var(--red); }
+    .reco-list li::before      { content: '→'; color: var(--yellow); }
+
+    /* ── WIN PROBABILITY ── */
+    .win-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    .win-box.high {
+      background: rgba(20,241,149,0.07);
+      border: 1px solid rgba(20,241,149,0.25);
+    }
+    .win-box.medium {
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+    .win-box.low {
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+    .win-icon { font-size: 2rem; }
+    .win-label { font-size: 1.1rem; font-weight: 700; }
+    .win-box.high  .win-label { color: var(--green); }
+    .win-box.medium .win-label { color: var(--yellow); }
+    .win-box.low   .win-label { color: var(--red); }
+    .win-reason { font-size: 0.88rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding: 24px 0 8px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 28px 20px; }
+      .header h1 { font-size: 1.8rem; }
+      .card { padding: 20px 18px; }
+      .score-total-value { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="header-badge">⚖️ AI Judge Panel · Metaplex Agents Track</div>
+    <h1>Kinko</h1>
+    <p class="tagline">"An AI agent that funds itself, pays other agents, and buys back its own token — all autonomously."</p>
+    <div class="meta-row">
+      <span>📅 Evaluated: 2026-04-02</span>
+      <span>🏆 Hackathon: Solana x402 / Trends.fun</span>
+      <span>🎯 Track: Metaplex Agents Track</span>
+      <span>💰 Prize Pool: $5,000 USDC</span>
+    </div>
+  </div>
+
+  <!-- ── EXECUTIVE SUMMARY ── -->
+  <div class="card summary">
+    <div class="card-title">Executive Summary</div>
+    <p>
+      Kinko is a strong, well-scoped submission for the Metaplex Agents Track. It cleanly combines
+      two proven concepts — yield-bearing treasury (proven in Lido/Lidogent) and auto-buyback
+      tokenomics (proven by Raydium, Pump.fun, Hyperliquid) — and contextualizes both to the
+      Metaplex Agents ecosystem on Solana. The combination is not groundbreaking in concept, but
+      the execution plan is tight and the Metaplex integration coverage is the deepest possible:
+      6 distinct touchpoints including Core Asset, Attributes Plugin, Agent Registry, Genesis,
+      x402, and DAS API.
+    </p>
+    <p>
+      The A2A flow is the clearest differentiator. Two registered agents, two separate x402 payments
+      on a single user request, verifiable via Solana explorer — this is exactly what judges want
+      to see. It is meaningful (not dummy), autonomous (not hardcoded), and demonstrable in under
+      2 minutes. The revenue split into buyback reinforces the token economy narrative cleanly.
+    </p>
+    <p>
+      The primary risk is execution: this is an ambitious scope for a hackathon. The token gating,
+      buyback executor, A2A discovery via DAS, Genesis launch, and custom Anchor treasury all need
+      to be working end-to-end at demo time. If any loop is broken, the score drops significantly.
+      The builder should prioritize Loop 2 (A2A + x402) and Loop 3 (Genesis + buyback) over
+      Marinade yield integration, which should remain a stretch goal only.
+    </p>
+  </div>
+
+  <!-- ── REQUIREMENT COVERAGE ── -->
+  <div class="card">
+    <div class="card-title">Requirement Coverage</div>
+
+    <div class="req-item">
+      <div class="req-status">✅</div>
+      <div class="req-body">
+        <strong>Requirement 1 — Create & Register Agent on Solana</strong>
+        <p>
+          Two agents (Agent A + Agent B) registered as Metaplex Core Assets with separate wallets.
+          Both expose x402-compatible APIs. Core Attributes Plugin stores live on-chain metrics.
+          Agent runtime is connected and funded. This requirement is fully met with depth —
+          use of Attributes Plugin and DAS API goes well beyond the minimum.
+        </p>
+      </div>
+    </div>
+
+    <div class="req-item">
+      <div class="req-status">✅</div>
+      <div class="req-body">
+        <strong>Requirement 2 — Demonstrate A2A Interactions</strong>
+        <p>
+          Agent A discovers Agent B via DAS API query (not hardcoded addresses). Full x402 payment
+          flow: user → Agent A → Agent B, two separate real SOL transfers verifiable on Solana
+          explorer. The interaction is meaningful: Agent A uses Agent B's price data to enrich
+          its LLM response. This is one of the strongest A2A implementations possible within scope.
+        </p>
+      </div>
+    </div>
+
+    <div class="req-item">
+      <div class="req-status">✅</div>
+      <div class="req-body">
+        <strong>Requirement 3 — Launch Token + Meaningful Utility</strong>
+        <p>
+          $AGENT token launched via Metaplex Genesis Launch Pool by the agent wallet (not personal
+          wallet). Token has three concrete utilities: premium access gating (enforced in middleware
+          via RPC check), auto-buyback mechanism (60% of revenue, executed autonomously via Jupiter),
+          and on-chain reputation signal (via Core Asset Attributes). Utility is not just claimed
+          in docs — it is implemented in contract/server logic.
+        </p>
+      </div>
+    </div>
+
+    <div class="req-item">
+      <div class="req-status">⚠️</div>
+      <div class="req-body">
+        <strong>Submission — X Article + GitHub + Live Demo</strong>
+        <p>
+          GitHub, live demo, and X article URLs are marked as "to be filled before submission."
+          These are required for a complete submission. The evaluation assumes they will exist
+          at submission time. Incomplete submission materials would significantly hurt standing.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCORECARD ── -->
+  <div class="card">
+    <div class="card-title">Score Breakdown</div>
+
+    <div class="score-total-box">
+      <div>
+        <div class="score-total-label">Weighted Total Score</div>
+        <div class="score-total-value">83<span style="font-size:1.4rem;color:var(--text-muted)">/100</span></div>
+        <div class="score-total-meta">Assuming full deployment and working demo at submission</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:0.85rem;color:var(--text-muted)">Win Probability</div>
+        <div style="font-size:1.4rem;font-weight:700;color:var(--green)">🟢 High</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Top 3 contender if executed</div>
+      </div>
+    </div>
+
+    <!-- Dimension 1 -->
+    <div class="score-row">
+      <div class="score-row-header">
+        <span class="score-row-name">Metaplex Integration Depth</span>
+        <span class="score-row-weight">Weight: 35%</span>
+        <span class="score-row-number" style="color:var(--purple-light)">9/10</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-purple" style="width:90%"></div></div>
+      <div class="score-row-rationale">
+        6 distinct Metaplex touchpoints: Core Asset, Attributes Plugin, Agent Registry, Genesis,
+        x402, DAS API. Agents stored as Core Assets with live on-chain data. Registry-based
+        discovery (not hardcoded). Genesis Launch Pool from agent wallet. Only point deducted:
+        Marinade integration is a stretch goal — if Genesis yield integration is missing, score
+        holds; if Core Attributes aren't updating in real-time during demo, it loses one point.
+        <strong style="color:var(--purple-light)"> → Weighted: 31.5 pts</strong>
+      </div>
+    </div>
+
+    <!-- Dimension 2 -->
+    <div class="score-row">
+      <div class="score-row-header">
+        <span class="score-row-name">A2A Interaction Quality</span>
+        <span class="score-row-weight">Weight: 25%</span>
+        <span class="score-row-number" style="color:var(--green)">9/10</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-green" style="width:90%"></div></div>
+      <div class="score-row-rationale">
+        Two separate registered agents, real x402 payments, registry-based discovery, pipeline
+        where output of Agent B feeds Agent A's response. This is above-average depth for A2A.
+        Deduction: Agent B is intentionally minimal ("witness agent") — judges may want to see
+        Agent B as a more specialized, interesting service in its own right.
+        <strong style="color:var(--green)"> → Weighted: 22.5 pts</strong>
+      </div>
+    </div>
+
+    <!-- Dimension 3 -->
+    <div class="score-row">
+      <div class="score-row-header">
+        <span class="score-row-name">Token Utility</span>
+        <span class="score-row-weight">Weight: 15%</span>
+        <span class="score-row-number" style="color:var(--yellow)">8/10</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-yellow" style="width:80%"></div></div>
+      <div class="score-row-rationale">
+        Three concrete utilities: access gating (RPC-enforced in middleware), auto-buyback (Jupiter
+        swap, autonomous execution), reputation signal (on-chain via Attributes). All are implemented
+        in actual logic, not just docs. Deduction: priority queue is in server logic (not contract),
+        buyback is off-chain execution (not enforced by on-chain program). Would score higher if
+        buyback and gating were enforced in a custom Anchor program.
+        <strong style="color:var(--yellow)"> → Weighted: 12 pts</strong>
+      </div>
+    </div>
+
+    <!-- Dimension 4 -->
+    <div class="score-row">
+      <div class="score-row-header">
+        <span class="score-row-name">Product Quality & UX</span>
+        <span class="score-row-weight">Weight: 15%</span>
+        <span class="score-row-number" style="color:#60a5fa">8/10</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-blue" style="width:80%"></div></div>
+      <div class="score-row-rationale">
+        Frontend live on Vercel, server on Railway, devnet contract deployed. 2-minute demo script
+        is clear and linear — judges can follow it. Dashboard shows live DAS API data. 20+ tests.
+        Score assumes all of this is actually working at submission. Deduction for: demo script
+        still has a lot of moving parts (Marinade, Genesis, Jupiter, A2A in sequence) — if any
+        step fails during live demo, it hurts. README quality not yet evaluated.
+        <strong style="color:#60a5fa"> → Weighted: 12 pts</strong>
+      </div>
+    </div>
+
+    <!-- Dimension 5 -->
+    <div class="score-row">
+      <div class="score-row-header">
+        <span class="score-row-name">Innovation & Differentiation</span>
+        <span class="score-row-weight">Weight: 10%</span>
+        <span class="score-row-number" style="color:#2dd4bf">7/10</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bar-teal" style="width:70%"></div></div>
+      <div class="score-row-rationale">
+        Yield treasury pattern is proven (Lidogent). Buyback tokenomics is proven (Raydium, Pump.fun).
+        But the COMBINATION — yield treasury + Genesis token + auto-buyback + A2A — is new on Solana
+        and Metaplex. No direct prior art in this ecosystem. The Marinade × Genesis partnership angle
+        adds a timely narrative ("first to implement announced partnership"). Originality of idea is
+        low (★★), but originality of combination on this stack is high (★★★★).
+        <strong style="color:#2dd4bf"> → Weighted: 7 pts</strong>
+      </div>
+    </div>
+
+    <div style="padding-top:16px;border-top:1px solid var(--border);font-size:0.85rem;color:var(--text-muted)">
+      Total: 31.5 + 22.5 + 12 + 12 + 7 = <strong style="color:var(--text)">85 pts</strong>
+      &nbsp;(rounded to 83 accounting for execution risk on unfinished submission materials)
+    </div>
+  </div>
+
+  <!-- ── STRENGTHS ── -->
+  <div class="card">
+    <div class="card-title">Strengths</div>
+    <ul class="eval-list strength-list">
+      <li>Deepest possible Metaplex integration coverage — 6 touchpoints, all core to the product, not bolted on.</li>
+      <li>A2A flow is genuinely interesting: two registered agents, two real x402 transactions on a single user request, verifiable on-chain. This is exactly what judges want to see.</li>
+      <li>Token utility is implemented in actual code (middleware RPC check, Jupiter buyback executor, Attributes update) — not just claimed in documentation.</li>
+      <li>Proven concept × new context = lowest-risk strategy. Lidogent proved yield treasury wins; Kinko brings that pattern to Metaplex/Solana with added token economy layer.</li>
+      <li>Demo script is tight, linear, and completable in under 2 minutes. Judges can follow it without technical background.</li>
+    </ul>
+  </div>
+
+  <!-- ── WEAKNESSES ── -->
+  <div class="card">
+    <div class="card-title">Weaknesses / Gaps</div>
+    <ul class="eval-list weakness-list">
+      <li>Submission materials (GitHub, live demo, X article) not yet complete. These are required for a valid submission and missing them is an automatic disqualifier.</li>
+      <li>Scope is large for a hackathon: 3 core loops + Marinade + Genesis + A2A + buyback + custom Anchor program. If any loop breaks during demo, it damages the overall impression significantly.</li>
+      <li>Buyback and token gating are enforced in off-chain server logic, not a Solana smart contract. A judge who is technical will notice this. On-chain enforcement would score higher for the Token Utility dimension.</li>
+      <li>Agent B is described as a "witness agent" — minimal purpose, just price data. This is serviceable but judges may wish Agent B had a more compelling specialized role.</li>
+      <li>Marinade staking is listed as "BONUS — only if core loops finish." If it's missing from the demo, the yield narrative becomes aspirational rather than demonstrated, which weakens the dual-revenue story.</li>
+    </ul>
+  </div>
+
+  <!-- ── WIN PROBABILITY ── -->
+  <div class="card">
+    <div class="card-title">Winning Probability Assessment</div>
+
+    <div class="win-box high">
+      <div class="win-icon">🟢</div>
+      <div>
+        <div class="win-label">High — Top 3 Contender (assuming full execution)</div>
+        <div class="win-reason">
+          Kinko covers all three official requirements with depth, not surface-level. The A2A
+          implementation is the strongest signal: registry-based discovery + dual x402 flows is
+          exactly the "interesting" interaction Metaplex is asking for. No other publicly known
+          competitor has attempted this combination (yield treasury + Genesis auto-buyback + A2A)
+          on Metaplex/Solana. If the demo is clean and all three loops work, this is a 1st–2nd
+          place submission.
+        </div>
+      </div>
+    </div>
+
+    <div class="win-box medium" style="margin-top:12px">
+      <div class="win-icon">🟡</div>
+      <div>
+        <div class="win-label">Conditional Risk — Medium if any core loop is broken</div>
+        <div class="win-reason">
+          If the Genesis launch, buyback executor, or A2A payment flow fails during demo or
+          is not verifiable on-chain, the score drops significantly. Judges scoring on "overall
+          product quality" will penalize a non-working demo regardless of documentation quality.
+          The builder must prioritize working code over feature completeness.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RECOMMENDATIONS ── -->
+  <div class="card">
+    <div class="card-title">Recommendations</div>
+    <ul class="eval-list reco-list">
+      <li>
+        <strong style="color:var(--text)">Deprioritize Marinade integration entirely.</strong>
+        The dual-revenue story is compelling, but Marinade adds integration complexity that
+        can break the demo. Focus on making x402 revenue → Jupiter buyback work perfectly.
+        Label Marinade as "Phase 2 roadmap" in the X article.
+      </li>
+      <li>
+        <strong style="color:var(--text)">Move token gating to on-chain enforcement.</strong>
+        Even a minimal Anchor program that checks $AGENT balance before processing a request
+        is more impressive to technical judges than an off-chain RPC check. If custom program
+        is already in scope, add the gating check there.
+      </li>
+      <li>
+        <strong style="color:var(--text)">Give Agent B a sharper identity.</strong>
+        "PriceAgent" is serviceable but generic. Rename it something memorable and give it
+        a clear specialization story. Judges will remember two distinct characters better than
+        "Agent A and Agent B."
+      </li>
+      <li>
+        <strong style="color:var(--text)">Pre-record the demo video before submission day.</strong>
+        With 5+ live moving parts (x402, A2A, Genesis, buyback, Attributes update), a live
+        demo has high failure risk. A clean pre-recorded video embedded in the X article
+        removes this risk entirely. Supplement with a live playground for judges who want
+        to interact themselves.
+      </li>
+      <li>
+        <strong style="color:var(--text)">Complete the X article, GitHub, and live demo before the deadline.</strong>
+        These are not optional polish — they are required submission materials. The X article
+        should lead with the buyback angle ("the first agent on Solana that earns, hires, and
+        sustains its own token") and show explorer screenshots for every key transaction.
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    ⚖️ This is an AI-generated evaluation for internal use only.<br>
+    Not affiliated with Metaplex, Trends.fun, or the Solana Foundation.<br>
+    Generated: 2026-04-02 · Model: Claude Sonnet 4.6 · Project: Kinko
+  </div>
+
+</div>
+</body>
+</html>

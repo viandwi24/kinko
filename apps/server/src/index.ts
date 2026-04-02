@@ -4,6 +4,7 @@ import { logger } from 'hono/logger'
 import { chatRoute } from './routes/chat'
 import { agentCardRoute } from './routes/agent-card'
 import { configRoute } from './routes/config'
+import { pricesRoute } from './routes/prices'
 
 const app = new Hono()
 
@@ -19,6 +20,7 @@ app.get('/health', (c) => c.json({ status: 'ok', agent: 'kinko' }))
 app.route('/.well-known', agentCardRoute)
 app.route('/api/config', configRoute)
 app.route('/api', chatRoute)
+app.route('/agents/prices', pricesRoute)
 
 const port = Number(process.env.PORT ?? 3001)
 console.log(`Kinko Agent running on http://localhost:${port}`)

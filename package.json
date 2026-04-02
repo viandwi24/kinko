@@ -9,16 +9,16 @@
   ],
   "scripts": {
     "register-agent": "bun run scripts/register-agent.ts",
+    "register-prices-agent": "bun run scripts/register-prices-agent.ts",
     "update-agent-name": "bun run scripts/update-agent-name.ts",
     "setup": "bun run apps/setup-tui/src/index.tsx",
     "dev:web": "bun run --cwd apps/web dev",
     "dev:server": "bun run --cwd apps/server dev",
-    "dev:agent-b": "bun run --cwd apps/agent-b dev",
     "build:web": "bun run --cwd apps/web build",
     "build:contract": "cd contract && anchor build",
     "deploy:contract": "cd contract && anchor deploy --provider.cluster devnet --provider.wallet ../data/agent-keypair.json",
     "set-treasury-agent": "bun run --cwd contract set-treasury-agent",
-    "dev": "concurrently -p \"[{name}]\" -n \"WEB,SERVER,AGENT-B\" -c \"blue,green,magenta\" \"bun run dev:web\" \"bun run dev:server\" \"bun run dev:agent-b\""
+    "dev": "concurrently -p \"[{name}]\" -n \"WEB,SERVER\" -c \"blue,green\" \"bun run dev:web\" \"bun run dev:server\""
   },
   "devDependencies": {
     "@types/bun": "latest",

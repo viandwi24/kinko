@@ -34,6 +34,54 @@ export type SetupAgentResult = {
   executiveProfilePda: string
 }
 
+export type SetupAgentCoreResult = {
+  assetAddress: string
+  assetSignerPda: string
+}
+
+/**
+ * Creates only the Core Asset (no registry program calls).
+ * Use when registerIdentityV1 is unavailable or for sub-agents.
+ */
+export async function setupAgentCoreOnly(): Promise<SetupAgentCoreResult> {
+  const serviceUrl = process.env.AGENT_SERVICE_URL ?? 'http://localhost:3001'
+  const agentName  = process.env.AGENT_NAME ?? 'Kinko'
+  const umi = createKinkoUmi()
+
+  console.log('Operator wallet:', umi.identity.publicKey)
+  console.log('Agent name:', agentName)
+  console.log('')
+
+  console.log('Creating Core Asset...')
+  const assetSigner = generateSigner(umi)
+
+  await create(umi, {
+    asset: assetSigner,
+    name: agentName,
+    uri: `${serviceUrl}/.well-known/metadata.json`,
+    plugins: [
+      {
+        type: 'Attributes',
+        attributeList: [
+          { key: 'status',           value: 'active' },
+          { key: 'service_endpoint', value: serviceUrl },
+          { key: 'version',          value: '1.0.0' },
+        ],
+      },
+    ],
+  }).sendAndConfirm(umi)
+
+  const assetAddress = assetSigner.publicKey
+  const assetSignerPdaTuple = findAssetSignerPda(umi, { asset: assetAddress })
+  console.log('  Asset address:    ', assetAddress)
+  console.log('  Asset Signer PDA: ', assetSignerPdaTuple[0])
+
+  return {
+    assetAddress: String(assetAddress),
+    assetSignerPda: String(assetSignerPdaTuple[0]),
+  }
+}
+
 export async function setupAgent(): Promise<SetupAgentResult> {
   const serviceUrl = process.env.AGENT_SERVICE_URL ?? 'http://localhost:3001'
   const agentName  = process.env.AGENT_NAME ?? 'Kinko'
@@ -71,6 +119,9 @@ export async function setupAgent(): Promise<SetupAgentResult> {
   const assetAddress = assetSigner.publicKey
   console.log('  Asset address:         ', assetAddress)
 
+  // Wait for asset to be confirmed before registering identity
+  await new Promise(r => setTimeout(r, 3000))
+
   // ─── 2. Derive Asset Signer PDA ──────────────────────────────────────────────
   const assetSignerPdaTuple = findAssetSignerPda(umi, { asset: assetAddress })
   console.log('  Asset Signer PDA:      ', assetSignerPdaTuple[0])
@@ -82,12 +133,13 @@ export async function setupAgent(): Promise<SetupAgentResult> {
   // as a data URI exceeds Solana's 1232-byte transaction limit.
   const registrationUri = `${serviceUrl}/.well-known/agent.json`
 
+  const agentIdentityPdaTuple = findAgentIdentityV1Pda(umi, { asset: assetAddress })
+
   await registerIdentityV1(umi, {
     asset: assetAddress,
+    agentIdentity: agentIdentityPdaTuple,
     agentRegistrationUri: registrationUri,
   }).sendAndConfirm(umi)
-
-  const agentIdentityPdaTuple = findAgentIdentityV1Pda(umi, { asset: assetAddress })
   console.log('  Agent Identity PDA:    ', agentIdentityPdaTuple[0])
 
   // ─── 4. Register Executive Profile ───────────────────────────────────────────
