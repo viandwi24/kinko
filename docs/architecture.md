@@ -12,19 +12,16 @@ kinko/
 ├── Cargo.toml            ← Cargo workspace root (programs/*)
 │
 ├── apps/
-│   ├── frontend/         ← Next.js dashboard (public UI)
-│   ├── agent-a/          ← Agent A runtime (x402 server + A2A orchestrator)
-│   └── agent-b/          ← Agent B runtime (x402 server + A2A endpoint)
+│   ├── web/              ← Next.js frontend (public UI)
+│   ├── server/           ← Backend API + AI agent runtime (Hono, port 3001)
+│   └── agent-b/          ← Price oracle agent — x402 endpoint (Hono, port 3002)
 │
 ├── packages/
-│   ├── solana/           ← Shared Solana/Metaplex/Umi utilities
-│   └── x402/             ← Shared x402 helpers
+│   └── solana/           ← Shared Solana/Metaplex/Umi utilities + setup scripts
 │
-└── programs/
-    └── agent-treasury/   ← Anchor program (principal lock + yield spending)
-        ├── Cargo.toml
-        ├── src/lib.rs
-        └── tests/        ← Anchor TypeScript tests (via Bun)
+└── contract/
+    └── programs/
+        └── kinko-treasury/ ← Anchor program (principal lock + yield spending)
 ```
 
 ## Tech Stack

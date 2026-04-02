@@ -8,10 +8,10 @@
     "contract"
   ],
   "scripts": {
-    "dev:web": "bun run --cwd packages/web dev",
-    "dev:agent-a": "bun run --cwd apps/agent-a dev",
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev:server": "bun run --cwd apps/server dev",
     "dev:agent-b": "bun run --cwd apps/agent-b dev",
-    "build:web": "bun run --cwd packages/web build",
+    "build:web": "bun run --cwd apps/web build",
     "build:contract": "cd contract && anchor build"
   },
   "devDependencies": {

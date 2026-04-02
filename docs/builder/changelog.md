@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-04-02 — Rename: agent-a → server, packages/web → apps/web
+
+- Renamed `apps/agent-a/` → `apps/server/` (package name `@kinko/server`)
+- Moved `packages/web/` → `apps/web/` (package name `@kinko/web`)
+- Updated root `package.json` scripts: `dev:agent-a` → `dev:server`, paths updated
+- Updated `docs/architecture.md`, `docs/builder/current.md`, `docs/deploy/dev.md`
+- Files: `package.json`, `apps/server/package.json`, `apps/web/package.json`
+
 ## 2026-04-02 — Phase 4 + 5: Frontend Dashboard + Agent B A2A
 
 - **Phase 4 Frontend:**
@@ -16,21 +24,21 @@
   - `apps/agent-b/src/routes/agent-card.ts` — A2A agent card with x402 skill
   - `apps/agent-b/src/services/jupiter.ts` — SOL/USD price from Jupiter Price API v6
   - `apps/agent-b/src/routes/price.ts` — x402 protected: probe 402 → pay → get data
-  - `apps/agent-a/src/services/a2a.ts` — A2A client: probe, pay SOL tx, retry with X-Payment header
-  - `apps/agent-a/src/services/llm.ts` — auto-hires Agent B for price queries before LLM call
-  - Root `package.json` dev scripts for agent-a and agent-b
-- Files: `packages/web/lib/api.ts`, `packages/web/hooks/*`, `packages/web/components/app/*`, `packages/web/components/dashboard/*`, `apps/agent-b/src/**`, `apps/agent-a/src/services/a2a.ts`, `apps/agent-a/src/services/llm.ts`
+  - `apps/server/src/services/a2a.ts` — A2A client: probe, pay SOL tx, retry with X-Payment header
+  - `apps/server/src/services/llm.ts` — auto-hires Agent B for price queries before LLM call
+  - Root `package.json` dev scripts for server and agent-b
+- Files: `apps/web/lib/api.ts`, `apps/web/hooks/*`, `apps/web/components/app/*`, `apps/web/components/dashboard/*`, `apps/agent-b/src/**`, `apps/server/src/services/a2a.ts`, `apps/server/src/services/llm.ts`
 
 ## 2026-04-02 — Phase 3: Agent A Runtime
 
-- `apps/agent-a/src/config.ts` — env-based config, keypair via AGENT_PRIVATE_KEY JSON byte array (no external file paths)
-- `apps/agent-a/src/services/treasury.ts` — getTreasuryInfo + checkAndDeductYield using @coral-xyz/anchor; yield computation mirrors Rust logic
-- `apps/agent-a/src/services/attributes.ts` — updateAgentStats via Umi + mpl-core; reads existing attrs then increments total_requests + total_yield_spent
-- `apps/agent-a/src/routes/chat.ts` — full flow: deduct yield → LLM → update attributes (non-blocking); GET /api/treasury/:wallet; HTTP 402 on insufficient yield
-- `apps/agent-a/.env.example` — documented all required env vars
+- `apps/server/src/config.ts` — env-based config, keypair via AGENT_PRIVATE_KEY JSON byte array (no external file paths)
+- `apps/server/src/services/treasury.ts` — getTreasuryInfo + checkAndDeductYield using @coral-xyz/anchor; yield computation mirrors Rust logic
+- `apps/server/src/services/attributes.ts` — updateAgentStats via Umi + mpl-core; reads existing attrs then increments total_requests + total_yield_spent
+- `apps/server/src/routes/chat.ts` — full flow: deduct yield → LLM → update attributes (non-blocking); GET /api/treasury/:wallet; HTTP 402 on insufficient yield
+- `apps/server/.env.example` — documented all required env vars
 - `packages/solana/src/umi.ts` — switched to OPERATOR_PRIVATE_KEY env var
 - `docs/builder/memory.md` — rule: no external file paths, keypair via env var
-- Files: `apps/agent-a/src/config.ts`, `apps/agent-a/src/services/treasury.ts`, `apps/agent-a/src/services/attributes.ts`, `apps/agent-a/src/routes/chat.ts`, `apps/agent-a/.env.example`, `packages/solana/src/umi.ts`
+- Files: `apps/server/src/config.ts`, `apps/server/src/services/treasury.ts`, `apps/server/src/services/attributes.ts`, `apps/server/src/routes/chat.ts`, `apps/server/.env.example`, `packages/solana/src/umi.ts`
 
 ## 2026-04-02 — Phase 2: Agent Identity + Web Redesign
 
@@ -42,7 +50,7 @@
 - Redesigned web UI: dark purple Phantom-style theme matching logo (#b57bee lavender)
   - Updated `globals.css` CSS variables to deep purple dark theme
   - Redesigned all landing components (navbar, hero, how-it-works, features, cta) with purple glows, glass cards, gradient text
-- Files: `packages/solana/package.json`, `packages/solana/tsconfig.json`, `packages/solana/src/umi.ts`, `packages/solana/src/scripts/setup-agent.ts`, `packages/solana/src/scripts/update-attributes.ts`, `packages/solana/src/scripts/query-agents.ts`, `packages/web/app/globals.css`, `packages/web/components/landing/*.tsx`
+- Files: `packages/solana/package.json`, `packages/solana/tsconfig.json`, `packages/solana/src/umi.ts`, `packages/solana/src/scripts/setup-agent.ts`, `packages/solana/src/scripts/update-attributes.ts`, `packages/solana/src/scripts/query-agents.ts`, `apps/web/app/globals.css`, `apps/web/components/landing/*.tsx`
 
 ## 2026-04-01 — Bootstrap: Automated Docs Setup
 

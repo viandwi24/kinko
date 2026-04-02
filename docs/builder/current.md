@@ -8,14 +8,14 @@ Phase 4 + 5 selesai — Frontend Dashboard + Agent B A2A
 - Next: Phase 6 (Token / Genesis) — optional, atau polish + deploy
 
 ## Relevant Files
-- `packages/web/app/app/page.tsx` + `components/app/` — /app page
-- `packages/web/app/dashboard/page.tsx` + `components/dashboard/` — /dashboard page
-- `packages/web/hooks/use-treasury.ts`, `use-agent.ts` — TanStack Query hooks
-- `packages/web/lib/api.ts` — agent-a API client
-- `packages/web/components/wallet-provider.tsx` — Solana wallet adapter
+- `apps/web/app/app/page.tsx` + `components/app/` — /app page
+- `apps/web/app/app/dashboard/page.tsx` + `components/dashboard/` — /dashboard page
+- `apps/web/hooks/use-treasury.ts`, `use-agent.ts` — TanStack Query hooks
+- `apps/web/lib/api.ts` — server API client
+- `apps/web/components/wallet-provider.tsx` — Solana wallet adapter
 - `apps/agent-b/src/` — Agent B: x402 price oracle
-- `apps/agent-a/src/services/a2a.ts` — A2A discovery + x402 payment
-- `apps/agent-a/src/services/llm.ts` — auto-hires Agent B for price queries
+- `apps/server/src/services/a2a.ts` — A2A discovery + x402 payment
+- `apps/server/src/services/llm.ts` — auto-hires Agent B for price queries
 
 ## Important Context / Temporary Decisions
 - Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`
