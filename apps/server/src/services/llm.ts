@@ -1,7 +1,7 @@
-import OpenAI from 'openai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { generateText } from 'ai'
+import { config } from '../config.js'
 import { fetchSolPriceViaA2A } from './a2a.js'
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 const SYSTEM_PROMPT = `You are Kinko, an AI agent running on Solana. Your operations are funded by the user's staking yield.
 Be helpful and concise. Mention relevant Solana/DeFi context when appropriate.
@@ -19,8 +19,15 @@ function isPriceQuery(query: string): boolean {
   )
 }
 
+function getOpenRouter() {
+  if (!config.openrouterApiKey) {
+    throw new Error('OPENROUTER_API_KEY env var is not set.')
+  }
+  return createOpenRouter({ apiKey: config.openrouterApiKey })
+}
+
 export const llmService = {
-  async chat(query: string): Promise<string> {
+  async chat(query: string, model?: string): Promise<string> {
     let context = ''
 
     // Auto-hire Agent B for price queries (A2A via x402)
@@ -34,15 +41,16 @@ export const llmService = {
       }
     }
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: context + query },
-      ],
-      max_tokens: 1024,
+    const openrouter = getOpenRouter()
+    const resolvedModel = model ?? config.aiModel
+
+    const { text } = await generateText({
+      model: openrouter(resolvedModel),
+      system: SYSTEM_PROMPT,
+      prompt: context + query,
+      maxTokens: 1024,
     })
 
-    return response.choices[0]?.message?.content ?? 'No response from AI.'
+    return text || 'No response from AI.'
   },
 }

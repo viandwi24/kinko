@@ -75,11 +75,17 @@ export const SERVICES: ServiceDef[] = [
         hint: 'Dari output setup-agent.ts. Kosongkan jika belum ada.',
       },
       {
-        key: 'OPENAI_API_KEY',
-        label: 'OpenAI API Key',
-        hint: 'sk-...',
+        key: 'OPENROUTER_API_KEY',
+        label: 'OpenRouter API Key',
+        hint: 'Dari https://openrouter.ai/keys — format: sk-or-...',
         required: true,
         secret: true,
+      },
+      {
+        key: 'AI_MODEL',
+        label: 'AI Model',
+        hint: 'Lihat semua model: https://openrouter.ai/models',
+        default: () => 'openai/gpt-4o-mini',
       },
       {
         key: 'PORT',

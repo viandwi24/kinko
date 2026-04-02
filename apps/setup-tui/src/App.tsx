@@ -7,6 +7,7 @@ import { KeypairSetup, type KeypairInfo } from './screens/KeypairSetup.js'
 import { AirdropSetup } from './screens/AirdropSetup.js'
 import { ServiceSelect } from './screens/ServiceSelect.js'
 import { FieldInput } from './screens/FieldInput.js'
+import { AgentRegister } from './screens/AgentRegister.js'
 import { Done } from './screens/Done.js'
 
 type FormValues = Record<string, Record<string, string>>
@@ -27,6 +28,13 @@ type Step =
       serviceIdx: number
       fieldIdx: number
       values: FormValues
+    }
+  | {
+      type: 'agent-register'
+      services: string[]
+      values: FormValues
+      written: string[]
+      skipped: string[]
     }
   | { type: 'done'; written: string[]; skipped: string[] }
 
@@ -116,7 +124,12 @@ export function App() {
           }
         }
 
-        setStep({ type: 'done', written, skipped })
+        // Lanjut ke registrasi Metaplex jika solana scripts dikonfigurasi
+        if (services.includes('solana')) {
+          setStep({ type: 'agent-register', services, values: newValues, written, skipped })
+        } else {
+          setStep({ type: 'done', written, skipped })
+        }
       }
     },
     [step],
@@ -168,6 +181,17 @@ export function App() {
         fieldNum={fieldIdx + 1}
         totalFields={svc.fields.length}
         onSubmit={handleFieldSubmit}
+      />
+    )
+  }
+
+  if (step.type === 'agent-register') {
+    return (
+      <AgentRegister
+        solanaValues={step.values.solana ?? {}}
+        selectedServices={step.services}
+        allValues={step.values}
+        onDone={() => setStep({ type: 'done', written: step.written, skipped: step.skipped })}
       />
     )
   }

@@ -20,11 +20,12 @@ chatRoute.get('/treasury/:wallet', async (c) => {
 
 /** POST /api/chat — main AI service, deducts yield before responding */
 chatRoute.post('/chat', async (c) => {
-  const body = await c.req.json<{ query: string; userWallet: string }>()
+  const body = await c.req.json<{ query: string; userWallet: string; model?: string }>()
 
   if (!body.query || !body.userWallet) {
     return c.json({ error: 'query and userWallet are required' }, 400)
   }
+  const model = body.model ?? undefined
 
   // 1. Deduct yield from user's treasury PDA
   let deductResult: Awaited<ReturnType<typeof checkAndDeductYield>>
@@ -57,7 +58,7 @@ chatRoute.post('/chat', async (c) => {
   // 2. Call LLM
   let result: string
   try {
-    result = await llmService.chat(body.query)
+    result = await llmService.chat(body.query, model)
   } catch (err: unknown) {
     console.error('[llm] error:', err)
     return c.json({ error: 'llm_error', message: 'AI service failed' }, 500)
@@ -71,6 +72,7 @@ chatRoute.post('/chat', async (c) => {
   // 4. Return response
   return c.json({
     result,
+    model: model ?? config.aiModel,
     yield_spent: Number(deductResult.yieldSpentLamports) / LAMPORTS_PER_SOL,
     remaining_yield: Number(deductResult.remainingYieldLamports) / LAMPORTS_PER_SOL,
     tx_hash: deductResult.txHash,
