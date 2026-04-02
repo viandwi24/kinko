@@ -17,6 +17,7 @@
     "build:web": "bun run --cwd apps/web build",
     "build:contract": "cd contract && anchor build",
     "deploy:contract": "cd contract && anchor deploy --provider.cluster devnet --provider.wallet ../data/agent-keypair.json",
+    "set-treasury-agent": "bun run --cwd contract set-treasury-agent",
     "dev": "concurrently -p \"[{name}]\" -n \"WEB,SERVER,AGENT-B\" -c \"blue,green,magenta\" \"bun run dev:web\" \"bun run dev:server\" \"bun run dev:agent-b\""
   },
   "devDependencies": {
@@ -25,6 +26,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@metaplex-foundation/mpl-core": "^1.9.0",
     "@metaplex-foundation/umi": "^1.5.1"
   }
