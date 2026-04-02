@@ -1,5 +1,13 @@
 # Memory
 
+## No External File Paths
+
+**Jangan pernah keluar dari folder utama project.** Semua config, keypair, dan secret harus lewat env var, bukan path ke sistem (`~/.config/solana/id.json`, dll).
+
+- Keypair → env var sebagai JSON byte array string: `OPERATOR_PRIVATE_KEY=[1,2,3,...]`
+- Cara dapat: `cat <keypair.json> | tr -d '\n'` lalu paste ke `.env`
+- File `~/.config/solana/id.json` atau path di luar repo **tidak boleh** di-hardcode sebagai default
+
 ## Project Name
 
 Project ini bernama **Kinko** (sebelumnya disebut AgentVault di docs/hk/idea.md).

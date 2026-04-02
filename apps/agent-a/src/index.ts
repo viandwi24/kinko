@@ -13,7 +13,7 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
-app.get('/health', (c) => c.json({ status: 'ok', agent: 'kinko-agent-a' }))
+app.get('/health', (c) => c.json({ status: 'ok', agent: 'kinko' }))
 
 app.route('/.well-known', agentCardRoute)
 app.route('/api', chatRoute)

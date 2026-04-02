@@ -9,6 +9,8 @@
   ],
   "scripts": {
     "dev:web": "bun run --cwd packages/web dev",
+    "dev:agent-a": "bun run --cwd apps/agent-a dev",
+    "dev:agent-b": "bun run --cwd apps/agent-b dev",
     "build:web": "bun run --cwd packages/web build",
     "build:contract": "cd contract && anchor build"
   },

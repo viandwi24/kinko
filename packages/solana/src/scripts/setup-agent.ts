@@ -41,8 +41,8 @@ async function main() {
 
   await create(umi, {
     asset: assetSigner,
-    name: 'Kinko Agent A',
-    uri: 'https://kinko.app/agent-a.json',  // off-chain metadata (can be updated later)
+    name: 'Kinko',
+    uri: 'https://kinko.app/agent.json',
     plugins: [
       {
         type: 'Attributes',
@@ -69,7 +69,7 @@ async function main() {
 
   const registrationDoc = {
     type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
-    name: 'Kinko Agent A',
+    name: 'Kinko',
     description:
       'An autonomous AI agent funded by Solana staking yield. Users deposit SOL into a personal treasury; yield pays for AI requests. Agent A handles chat requests and delegates to specialist agents via x402 A2A payments.',
     image: 'https://kinko.app/agent-a-avatar.png',

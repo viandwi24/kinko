@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-04-02 — Phase 4 + 5: Frontend Dashboard + Agent B A2A
+
+- **Phase 4 Frontend:**
+  - Solana wallet adapter (Phantom + Solflare) in `components/wallet-provider.tsx`
+  - `hooks/use-treasury.ts` — TanStack Query, reads treasury via agent-a API
+  - `hooks/use-agent.ts` — agent health + agent card queries
+  - `lib/api.ts` — typed API client for agent-a
+  - `/app` page: treasury panel (principal, yield, progress bar) + chat panel (messages with yield receipts + tx links)
+  - `/dashboard` page: agent stats, status badge, endpoints reference
+  - Added shadcn: card, input, skeleton, scroll-area, textarea, sonner
+  - HTTP 402 toast when yield insufficient
+- **Phase 5 A2A:**
+  - `apps/agent-b/` — Bun/Hono server, port 3002
+  - `apps/agent-b/src/routes/agent-card.ts` — A2A agent card with x402 skill
+  - `apps/agent-b/src/services/jupiter.ts` — SOL/USD price from Jupiter Price API v6
+  - `apps/agent-b/src/routes/price.ts` — x402 protected: probe 402 → pay → get data
+  - `apps/agent-a/src/services/a2a.ts` — A2A client: probe, pay SOL tx, retry with X-Payment header
+  - `apps/agent-a/src/services/llm.ts` — auto-hires Agent B for price queries before LLM call
+  - Root `package.json` dev scripts for agent-a and agent-b
+- Files: `packages/web/lib/api.ts`, `packages/web/hooks/*`, `packages/web/components/app/*`, `packages/web/components/dashboard/*`, `apps/agent-b/src/**`, `apps/agent-a/src/services/a2a.ts`, `apps/agent-a/src/services/llm.ts`
+
+## 2026-04-02 — Phase 3: Agent A Runtime
+
+- `apps/agent-a/src/config.ts` — env-based config, keypair via AGENT_PRIVATE_KEY JSON byte array (no external file paths)
+- `apps/agent-a/src/services/treasury.ts` — getTreasuryInfo + checkAndDeductYield using @coral-xyz/anchor; yield computation mirrors Rust logic
+- `apps/agent-a/src/services/attributes.ts` — updateAgentStats via Umi + mpl-core; reads existing attrs then increments total_requests + total_yield_spent
+- `apps/agent-a/src/routes/chat.ts` — full flow: deduct yield → LLM → update attributes (non-blocking); GET /api/treasury/:wallet; HTTP 402 on insufficient yield
+- `apps/agent-a/.env.example` — documented all required env vars
+- `packages/solana/src/umi.ts` — switched to OPERATOR_PRIVATE_KEY env var
+- `docs/builder/memory.md` — rule: no external file paths, keypair via env var
+- Files: `apps/agent-a/src/config.ts`, `apps/agent-a/src/services/treasury.ts`, `apps/agent-a/src/services/attributes.ts`, `apps/agent-a/src/routes/chat.ts`, `apps/agent-a/.env.example`, `packages/solana/src/umi.ts`
+
 ## 2026-04-02 — Phase 2: Agent Identity + Web Redesign
 
 - Created `packages/solana/` (`@kinko/solana`) package

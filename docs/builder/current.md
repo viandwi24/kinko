@@ -1,29 +1,32 @@
 # Current
 
 ## Phase
-Phase 2 — Agent Identity (Metaplex Core Asset + Agent Registry)
+Phase 4 + 5 selesai — Frontend Dashboard + Agent B A2A
 
 ## Currently Working On
-- Creating `packages/solana/` (`@kinko/solana`) with agent setup scripts
-- Setup Core Asset, registerIdentityV1, registerExecutiveV1, delegateExecutionV1
+- Semua phase inti (1-5) sudah selesai
+- Next: Phase 6 (Token / Genesis) — optional, atau polish + deploy
 
 ## Relevant Files
-- `packages/solana/src/scripts/setup-agent.ts` — create Core Asset + register identity + delegate
-- `packages/solana/src/scripts/update-attributes.ts` — update agent attributes after each request
-- `packages/solana/src/scripts/query-agents.ts` — query agents from DAS API
-- `packages/solana/src/umi.ts` — Umi setup helper
-- `docs/plans/phase-2-agent-identity.md` — phase plan
+- `packages/web/app/app/page.tsx` + `components/app/` — /app page
+- `packages/web/app/dashboard/page.tsx` + `components/dashboard/` — /dashboard page
+- `packages/web/hooks/use-treasury.ts`, `use-agent.ts` — TanStack Query hooks
+- `packages/web/lib/api.ts` — agent-a API client
+- `packages/web/components/wallet-provider.tsx` — Solana wallet adapter
+- `apps/agent-b/src/` — Agent B: x402 price oracle
+- `apps/agent-a/src/services/a2a.ts` — A2A discovery + x402 payment
+- `apps/agent-a/src/services/llm.ts` — auto-hires Agent B for price queries
 
 ## Important Context / Temporary Decisions
 - Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL`
-- Contract folder: `contract/` (bukan `programs/` atau `contracts/`)
-- Anchor 0.32.1, Bun sebagai package manager
-- Agent wallet = Asset Signer PDA (bukan keypair), operator sebagai Executive
-- User → Agent A: yield-based | Agent A → Agent B: x402 (A2A)
-- Agent A attributes: status, total_requests, total_yield_spent, service_endpoint, version
-- Umi SDK used (not CLI) karena butuh code untuk scripts
-- ERC-8004 registration URI format untuk agentRegistrationUri
-- Devnet untuk development
+- **Keypair = env var JSON byte array** — jangan pernah pakai path ke luar folder project
+- Agent B wallet di env `AGENT_B_WALLET` (pubkey base58)
+- A2A x402 flow: probe 402 → pay SOL tx → retry with X-Payment header
+- Agent A auto-detects price queries → hires Agent B via A2A
+- Wallet adapter: Phantom + Solflare, devnet
+- NEXT_PUBLIC_AGENT_URL + NEXT_PUBLIC_SOLANA_RPC_URL needed for frontend
 
 ## Next Up
-- Phase 3: Agent A Runtime — yield deduction dari Anchor program, LLM integration, Attributes update setelah setiap request
+- Phase 6: Token ($AGENT via Metaplex Genesis) — optional
+- Deploy: Vercel (web) + Railway/Fly.io (agents)
+- Polish: real Marinade staking integration

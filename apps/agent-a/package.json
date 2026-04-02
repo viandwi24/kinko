@@ -9,14 +9,15 @@
     "build": "bun build src/index.ts --outdir dist --target bun"
   },
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
-    "hono": "^4.7.11",
-    "openai": "^4.103.0",
     "@anthropic-ai/sdk": "^0.52.0",
-    "@solana/web3.js": "^1.98.2",
+    "@coral-xyz/anchor": "^0.32.1",
+    "@hono/node-server": "^1.13.7",
+    "@metaplex-foundation/mpl-core": "^1.4.1",
     "@metaplex-foundation/umi": "^1.0.0",
     "@metaplex-foundation/umi-bundle-defaults": "^1.0.0",
-    "@metaplex-foundation/mpl-core": "^1.4.1"
+    "@solana/web3.js": "^1.98.2",
+    "hono": "^4.7.11",
+    "openai": "^4.103.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
