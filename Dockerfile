@@ -16,7 +16,6 @@ WORKDIR /app
 
 # Copy installed node_modules
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules 2>/dev/null || true
 
 # Copy source
 COPY --from=deps /app/package.json ./
