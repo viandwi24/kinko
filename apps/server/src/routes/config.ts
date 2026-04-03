@@ -4,7 +4,7 @@ import * as anchor from '@coral-xyz/anchor'
 import { config } from '../config.js'
 import { getTreasuryInfo } from '../services/treasury.js'
 
-import idl from '../../../../contract/target/idl/kinko_treasury.json' with { type: 'json' }
+import idl from '../kinko_treasury.json' with { type: 'json' }
 
 export const configRoute = new Hono()
 

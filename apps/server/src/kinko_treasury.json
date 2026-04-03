@@ -1,0 +1,1622 @@
+{
+  "address": "HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt",
+  "metadata": {
+    "name": "kinko_treasury",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "close_config",
+      "docs": [
+        "Close the KinkoConfig PDA (authority only). Used when upgrading config layout.",
+        "After closing, call initialize_config again with fresh layout."
+      ],
+      "discriminator": [
+        145,
+        9,
+        72,
+        157,
+        95,
+        125,
+        61,
+        85
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Must be the authority stored at byte offset 8 (after discriminator) in config data.",
+            "We read it raw because the old layout may not match the current struct."
+          ],
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_treasury",
+      "docs": [
+        "Close the treasury PDA and return all lamports to the owner."
+      ],
+      "discriminator": [
+        113,
+        239,
+        0,
+        73,
+        12,
+        113,
+        171,
+        43
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "docs": [
+            "Owner receives all lamports back (principal + rent)"
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deduct_yield",
+      "docs": [
+        "Deduct yield (Simulated provider). Only callable by the registered agent."
+      ],
+      "discriminator": [
+        148,
+        28,
+        93,
+        173,
+        87,
+        136,
+        21,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "treasury.owner",
+                "account": "UserTreasury"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "docs": [
+            "Global config — agent pubkey is validated here"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "docs": [
+            "Must match config.agent"
+          ],
+          "signer": true
+        },
+        {
+          "name": "recipient",
+          "docs": [
+            "Receives the yield (agent operating wallet)"
+          ],
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deduct_yield_marinade",
+      "docs": [
+        "Deduct yield (Marinade provider). Liquid-unstakes mSOL to pay yield in SOL."
+      ],
+      "discriminator": [
+        29,
+        248,
+        161,
+        72,
+        8,
+        252,
+        186,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "treasury.owner",
+                "account": "UserTreasury"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "docs": [
+            "Global config — agent pubkey + Marinade provider validated here"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "docs": [
+            "Must match config.agent"
+          ],
+          "signer": true
+        },
+        {
+          "name": "recipient",
+          "docs": [
+            "Receives the yield in SOL (agent operating wallet)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "msol_mint",
+          "docs": [
+            "mSOL mint — must be writable because liquid_unstake burns mSOL"
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_msol_account",
+          "docs": [
+            "Treasury's mSOL ATA — we'll unstake from here if needed"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "msol_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "marinade_state",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_sol_leg_pda",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "treasury_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "marinade_program",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deposit",
+      "docs": [
+        "Deposit SOL into the treasury (Simulated provider).",
+        "Principal is locked permanently; yield accrues via YIELD_RATE_BPS formula."
+      ],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "docs": [
+            "Global config — determines active staking provider"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deposit_marinade",
+      "docs": [
+        "Deposit SOL into the treasury via Marinade (Marinade provider).",
+        "SOL is converted to mSOL and held in the treasury's ATA.",
+        "Yield = current mSOL value - initial principal."
+      ],
+      "discriminator": [
+        2,
+        215,
+        97,
+        108,
+        5,
+        73,
+        116,
+        204
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "docs": [
+            "Global config — must have staking_provider = Marinade"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        },
+        {
+          "name": "msol_mint",
+          "docs": [
+            "mSOL mint"
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_msol_account",
+          "docs": [
+            "mSOL ATA owned by the treasury PDA — receives mSOL from Marinade"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "msol_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "marinade_state",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_sol_leg_pda",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_msol_leg_authority"
+        },
+        {
+          "name": "reserve_pda",
+          "writable": true
+        },
+        {
+          "name": "msol_mint_authority"
+        },
+        {
+          "name": "marinade_program",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Create a new per-user treasury PDA."
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_config",
+      "docs": [
+        "Initialize global config (operator only, called once after deploy).",
+        "Sets the agent pubkey and default staking provider (Simulated)."
+      ],
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "The operator — must sign. Becomes config.authority."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "agent",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "migrate_treasury",
+      "discriminator": [
+        13,
+        5,
+        40,
+        102,
+        230,
+        124,
+        105,
+        118
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "docs": [
+            "Old treasury account — unchecked so Anchor doesn't reject the old discriminator"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "migrate_treasury_v2",
+      "docs": [
+        "Migrate v1 treasury (65 bytes) to v2 (73 bytes) in-place.",
+        "Adds msol_amount=0 field. Must be called before deposit_marinade.",
+        "Safe: no lamports lost, no re-deposit needed."
+      ],
+      "discriminator": [
+        245,
+        161,
+        182,
+        132,
+        205,
+        168,
+        126,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "migrate_treasury_v3",
+      "docs": [
+        "Migrate a V2 treasury (73 bytes) to V3 (106 bytes) in-place.",
+        "Adds per-request cap, daily limit, and pause fields."
+      ],
+      "discriminator": [
+        57,
+        197,
+        129,
+        68,
+        41,
+        166,
+        5,
+        236
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "docs": [
+            "Treasury PDA — must be exactly 73 bytes (V2 layout, no space for new fields yet).",
+            "We manually realloc before Anchor tries to deserialize with the new layout."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "set_paused",
+      "docs": [
+        "Pause or unpause the treasury. Only callable by the treasury owner."
+      ],
+      "discriminator": [
+        91,
+        60,
+        125,
+        192,
+        176,
+        225,
+        166,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "set_staking_provider",
+      "docs": [
+        "Update the active staking provider (operator only).",
+        "0 = Simulated (YIELD_RATE_BPS formula), 1 = Marinade Finance CPI."
+      ],
+      "discriminator": [
+        79,
+        254,
+        111,
+        111,
+        205,
+        141,
+        243,
+        158
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  110,
+                  107,
+                  111,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Must be the original authority (operator)"
+          ],
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "provider",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "set_user_settings",
+      "docs": [
+        "Set per-user spending limits (per-request cap and daily limit).",
+        "Pass 0 to disable a limit. Only callable by the treasury owner."
+      ],
+      "discriminator": [
+        26,
+        175,
+        170,
+        93,
+        31,
+        136,
+        123,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "max_per_request_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "daily_limit_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_marinade",
+      "docs": [
+        "Migrate old-layout treasury (with agent field) to new layout.",
+        "Closes the old account and returns all lamports to owner.",
+        "After this, call initialize + deposit to recreate."
+      ],
+      "discriminator": [
+        141,
+        149,
+        162,
+        126,
+        110,
+        48,
+        117,
+        15
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        },
+        {
+          "name": "msol_mint",
+          "docs": [
+            "mSOL mint — writable because liquid_unstake burns mSOL"
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_msol_account",
+          "docs": [
+            "Treasury's mSOL ATA — source of mSOL to unstake"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "msol_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "marinade_state",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_sol_leg_pda",
+          "writable": true
+        },
+        {
+          "name": "liq_pool_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "treasury_msol_leg",
+          "writable": true
+        },
+        {
+          "name": "marinade_program",
+          "address": "MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "KinkoConfig",
+      "discriminator": [
+        215,
+        113,
+        68,
+        81,
+        151,
+        131,
+        149,
+        84
+      ]
+    },
+    {
+      "name": "UserTreasury",
+      "discriminator": [
+        92,
+        249,
+        251,
+        242,
+        84,
+        235,
+        237,
+        178
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6001,
+      "name": "InsufficientYield",
+      "msg": "Insufficient yield — deposit more SOL or wait for yield to accrue"
+    },
+    {
+      "code": 6002,
+      "name": "UnauthorizedAgent",
+      "msg": "Unauthorized — signer is not the registered agent"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidMarinadeState",
+      "msg": "Invalid Marinade state account"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidStakingProvider",
+      "msg": "Invalid staking provider — use 0 for Simulated or 1 for Marinade"
+    },
+    {
+      "code": 6005,
+      "name": "WrongDepositInstruction",
+      "msg": "Wrong deposit instruction for current staking provider"
+    },
+    {
+      "code": 6006,
+      "name": "WrongDeductInstruction",
+      "msg": "Wrong deduct_yield instruction for current staking provider"
+    },
+    {
+      "code": 6007,
+      "name": "TreasuryPaused",
+      "msg": "Treasury is paused by the owner"
+    },
+    {
+      "code": 6008,
+      "name": "ExceedsPerRequestCap",
+      "msg": "Amount exceeds per-request cap set by the owner"
+    },
+    {
+      "code": 6009,
+      "name": "ExceedsDailyLimit",
+      "msg": "Amount exceeds daily spending limit set by the owner"
+    }
+  ],
+  "types": [
+    {
+      "name": "KinkoConfig",
+      "docs": [
+        "Global config PDA — seeds: [b\"kinko_config\"]",
+        "Initialized once by operator after deploy.",
+        "Stores the agent pubkey allowed to call deduct_yield on any treasury."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "The operator who initialized this config"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "docs": [
+              "The agent keypair pubkey — only this signer can call deduct_yield"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "staking_provider",
+            "docs": [
+              "Active staking provider (0=Simulated, 1=Marinade)"
+            ],
+            "type": {
+              "defined": {
+                "name": "StakingProvider"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakingProvider",
+      "docs": [
+        "Staking provider variant stored in KinkoConfig.",
+        "u8 discriminant — new variants can be added without migration."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Simulated"
+          },
+          {
+            "name": "Marinade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserTreasury",
+      "docs": [
+        "Per-user treasury PDA. Seeds: [b\"treasury\", owner.key()]",
+        "",
+        "Principal is permanently locked — only yield can be spent.",
+        "",
+        "**Simulated mode:** Yield accrues at YIELD_RATE_BPS / BPS_DENOMINATOR per year.",
+        "**Marinade mode:** Yield = current mSOL value in SOL - principal_lamports.",
+        "mSOL is held in an ATA owned by this PDA. msol_amount tracks received tokens."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "principal_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "deposit_timestamp",
+            "docs": [
+              "Unix timestamp of last deposit (yield clock resets on deposit for simulated mode)"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "total_yield_spent",
+            "docs": [
+              "Cumulative yield already spent (lamports)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "msol_amount",
+            "docs": [
+              "mSOL tokens received from Marinade on deposit (0 for simulated mode)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "max_per_request_lamports",
+            "docs": [
+              "Per-request spending cap in lamports (0 = unlimited)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "daily_limit_lamports",
+            "docs": [
+              "Daily spending limit in lamports (0 = unlimited)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "day_spent_lamports",
+            "docs": [
+              "Lamports already spent in current day window"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "day_start_timestamp",
+            "docs": [
+              "Unix timestamp when the current day window started"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "is_paused",
+            "docs": [
+              "If true, agent cannot deduct yield"
+            ],
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ]
+}
