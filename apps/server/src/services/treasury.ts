@@ -10,7 +10,7 @@ import * as anchor from '@coral-xyz/anchor'
 import { Connection, PublicKey, Keypair } from '@solana/web3.js'
 import { config } from '../config.js'
 
-import idl from '../../../../contract/target/idl/kinko_treasury.json' with { type: 'json' }
+import idl from '../kinko_treasury.json' with { type: 'json' }
 
 // ─── Staking provider constants ────────────────────────────────────────────────
 
