@@ -1,42 +1,34 @@
 # Current
 
 ## Phase
-A2A discovery via Metaplex registry — refactor selesai, perlu Helius API key + agent lain di registry
+Per-user spending controls + V3 migration — deployed ✅
 
 ## Currently Working On
-- A2A discovery flow sudah diimplementasi, belum ditest end-to-end
-- Perlu: HELIUS_API_KEY di apps/server/.env + minimal 1 agent lain terdaftar di registry
+- Selesai. Semua fitur core + spending controls sudah berjalan.
 
 ## Relevant Files
-- `apps/server/src/services/treasury.ts` — yield calc (mirrors Rust, YIELD_RATE_BPS must stay in sync with contract)
-- `apps/server/src/routes/agent-card.ts` — all /.well-known/* routes, fully dynamic from config
-- `apps/server/src/config.ts` — single source of truth for server env vars
-- `apps/server/src/routes/chat.ts` — deduct yield → LLM → update attributes
-- `apps/web/components/dashboard/dashboard-shell.tsx` — dashboard with agent + smart contract sections
-- `apps/web/components/settings/settings-shell.tsx` — 2-tab settings (Agent / Program)
-- `apps/web/hooks/use-agent.ts` — useAgentCard, useAgentHealth, useServerConfig
-- `apps/web/lib/api.ts` — SERVER_URL (NEXT_PUBLIC_AGENT_URL) + all fetch helpers
-- `contract/programs/kinko-treasury/src/state/user_treasury.rs` — YIELD_RATE_BPS constant
-- `scripts/register-agent.ts` — registers agent, writes asset address back to .env
-- `scripts/update-agent-name.ts` — updates Core Asset name + URI onchain
-- `scripts/set-treasury-agent.ts` — must be run after deposit to link agent pubkey to treasury (lives in contract/scripts/)
-- `contract/scripts/set-treasury-agent.ts` — actual location (runs from contract/ for module resolution)
+- `contract/programs/kinko-treasury/src/state/user_treasury.rs` — V3 layout (106 bytes)
+- `contract/programs/kinko-treasury/src/instructions/deduct_yield.rs` — enforces pause + caps
+- `contract/programs/kinko-treasury/src/instructions/migrate_treasury_v3.rs` — V2→V3 in-place
+- `contract/programs/kinko-treasury/src/instructions/set_user_settings.rs` — owner sets limits
+- `contract/programs/kinko-treasury/src/instructions/set_paused.rs` — owner pause toggle
+- `apps/server/src/services/treasury.ts` — dual-provider yield logic + V3 fields
+- `apps/server/src/routes/config.ts` — /api/config + /api/config/admin/stats
+- `apps/web/components/app/treasury-panel.tsx` — settings panel + V2/V3 migration banners
+- `apps/web/components/dashboard/dashboard-shell.tsx` — admin stats section
+- `apps/web/lib/api.ts` — TreasuryInfo + AdminStats types + fetchAdminStats
 
-## Important Context / Temporary Decisions
-- Program ID: `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL` — deployed on devnet
-- **YIELD_RATE_BPS must be kept in sync**: `contract/programs/kinko-treasury/src/state/user_treasury.rs` AND `apps/server/src/services/treasury.ts` — both set to 800 (8% APY)
-- **treasury.agent field**: after initialize, agent = Pubkey::default(). Must call `set_agent` via `bun run set-treasury-agent` before chat works
-- **Frontend only needs NEXT_PUBLIC_AGENT_URL** — all other config (programId, rpcUrl, agentAssetAddress) fetched from GET /api/config
-- All JSON metadata (agent.json, metadata.json, agent-card.json) are dynamic server routes — no files
-- Scripts in `scripts/` use dynamic import after setting process.env (static import runs before env is set)
-- `data/agent-keypair.json` = upgrade authority for the Anchor program on devnet
-- ngrok URL as SERVER_URL required so Metaplex registry can access /.well-known/metadata.json
-- COST_PER_REQUEST_LAMPORTS=1000000 (0.001 SOL per chat request)
-- Agent asset visible at: https://www.metaplex.com/agents/49r61vKJVDrvWRv9EnoW5uDWQ4WS4TK8bAXM7U7rkZMq?network=solana-devnet
+## Important Context
+- **Program ID aktif:** `HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt` (devnet)
+- **Config PDA:** `X6JGvxeCVxWRvTQ97ixoCmmmZRtYSf4DmtqKGLCNpoA`
+- **Provider aktif:** Marinade
+- **UserTreasury V3 layout:** 106 bytes — existing V2 (73 bytes) accounts need migrate_treasury_v3
+- **V3 fields default:** max_per_request=0 (unlimited), daily_limit=0 (unlimited), is_paused=false
+- **Daily limit window:** rolling 24h from `day_start_timestamp` — resets on first deduct after 24h
+- **associated_token_program:** `ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL` (v2!)
+- **mSOL price offset (devnet):** 344 (num), 352 (den)
 
 ## Next Up
-- Set HELIUS_API_KEY di apps/server/.env (dapat dari helius.dev)
-- Register agent lain di devnet yang punya skill berbeda (atau pakai agent dari tim lain)
-- Test A2A end-to-end: tanya "SOL price" → discovery → x402 payment → 2 tx onchain
-- Real Marinade staking integration (replace simulated yield)
-- Deploy: Vercel (web) + Railway/Fly.io (server)
+- Deploy ke production: Vercel (web) + Railway/Fly.io (server)
+- Test dengan wallet user lain (bukan agent keypair)
+- Migrate existing V2 treasury ke V3 (banner muncul otomatis di frontend)

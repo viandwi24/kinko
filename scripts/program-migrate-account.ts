@@ -68,7 +68,7 @@ async function sendAndConfirm(connection: Connection, tx: Transaction, signers: 
 async function main() {
   const serverEnv = readEnvFile('apps/server/.env')
   const rpcUrl = serverEnv['SOLANA_RPC_URL'] ?? 'https://api.devnet.solana.com'
-  const programId = new PublicKey(serverEnv['ANCHOR_PROGRAM_ID'] ?? 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL')
+  const programId = new PublicKey(serverEnv['ANCHOR_PROGRAM_ID'] ?? 'HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt')
   const ownerKp = Keypair.fromSecretKey(new Uint8Array(JSON.parse(serverEnv['SERVER_AGENT_PRIVATE_KEY'])))
   const connection = new Connection(rpcUrl, 'confirmed')
 

@@ -20,6 +20,9 @@
     "program-init-config": "bun run scripts/program-init-config.ts",
     "program-migrate-account": "bun run scripts/program-migrate-account.ts",
     "program-sim-yield": "bun run scripts/program-sim-yield.ts",
+    "program-set-staking-provider": "bun run scripts/program-set-staking-provider.ts",
+    "program-close-config": "bun run scripts/program-close-config.ts",
+    "program-update-id": "bun run scripts/program-update-id.ts",
     "dev": "concurrently -p \"[{name}]\" -n \"WEB,SERVER\" -c \"blue,green\" \"bun run dev:web\" \"bun run dev:server\""
   },
   "devDependencies": {

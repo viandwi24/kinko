@@ -61,23 +61,26 @@ Instructions:
 └── get_available_yield() — view: current mSOL value - initial - spent
 ```
 
-## Revenue Flow
+## Revenue Flow (MVP)
 
 ```
 INCOME:
   x402 fees (per request)  +  Marinade yield (passive)
           ↓
-SPLIT (otomatis di agent-a):
-  60% → buyback executor → swap SOL → $AGENT via Jupiter
-  30% → operating budget (bayar Agent B via A2A x402)
-  10% → protocol fee
+SPLIT:
+  ~90% → operating budget (bayar Agent B via A2A x402)
+  ~10% → protocol fee
+
+NOTE: Token buyback ($AGENT via Jupiter) adalah post-MVP feature,
+belum diimplementasi.
 ```
 
 ## POV / Roles
 
 | Role | Siapa | Akses |
 |------|-------|-------|
-| Public User | Siapapun | Frontend publik, x402 playground, beli $AGENT |
-| Token Holder | Hold $AGENT | Free access jika ≥100 $AGENT, priority queue |
-| Genesis Participant | Early depositor | Deposit SOL → dapat $AGENT proporsional |
+| Public User | Siapapun | Frontend publik, deposit SOL, chat via yield |
 | Operator/Admin | Kita (deployer) | CLI scripts, deploy program, monitor treasury |
+
+> Token-gated access ($AGENT holder) dan Genesis Participant role
+> adalah post-MVP — belum diimplementasi.

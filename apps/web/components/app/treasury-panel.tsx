@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import {
   PublicKey,
@@ -19,7 +19,8 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Copy, ArrowDownToLine, AlertTriangleIcon, RefreshCwIcon, ExternalLink, Settings2, PauseCircle, PlayCircle } from 'lucide-react'
+import { Copy, ArrowDownToLine, AlertTriangleIcon, RefreshCwIcon, ExternalLink, Settings2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const PROGRAM_ID = new PublicKey('HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt')
 const MARINADE_PROGRAM_ID = new PublicKey('MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD')
@@ -107,16 +108,12 @@ export function TreasuryPanel() {
   const { treasury, isLoading, refetch } = useTreasury()
   const { serverConfig } = useServerConfig()
 
+  const router = useRouter()
   const [solAmount, setSolAmount] = useState('0.1')
   const [depositing, setDepositing] = useState(false)
   const [migrating, setMigrating] = useState(false)
   const [closing, setClosing] = useState(false)
   const [needsMigration, setNeedsMigration] = useState<'v0' | 'v1' | 'v2' | null>(null)
-  const [showSettings, setShowSettings] = useState(false)
-  const [settingsMaxPerReq, setSettingsMaxPerReq] = useState('')
-  const [settingsDailyLimit, setSettingsDailyLimit] = useState('')
-  const [savingSettings, setSavingSettings] = useState(false)
-  const [togglingPause, setTogglingPause] = useState(false)
   const [oldPrincipalSol, setOldPrincipalSol] = useState(0)
   const [detectionTick, setDetectionTick] = useState(0)
 
@@ -416,76 +413,6 @@ export function TreasuryPanel() {
     }
   }
 
-  function encodeSettings(maxPerReq: bigint, dailyLimit: bigint): Uint8Array {
-    const buf = new ArrayBuffer(16)
-    const view = new DataView(buf)
-    view.setBigUint64(0, maxPerReq, true)
-    view.setBigUint64(8, dailyLimit, true)
-    return new Uint8Array(buf)
-  }
-
-  function encodeBoolean(val: boolean): Uint8Array {
-    return new Uint8Array([val ? 1 : 0])
-  }
-
-  async function handleSaveSettings() {
-    if (!publicKey) return
-    setSavingSettings(true)
-    try {
-      const [treasuryPDA] = getTreasuryPDA(publicKey)
-      const maxPerReqLamports = settingsMaxPerReq
-        ? BigInt(Math.round(parseFloat(settingsMaxPerReq) * 1_000_000_000))
-        : BigInt(0)
-      const dailyLimitLamports = settingsDailyLimit
-        ? BigInt(Math.round(parseFloat(settingsDailyLimit) * 1_000_000_000))
-        : BigInt(0)
-      const tx = new Transaction().add(new TransactionInstruction({
-        programId: PROGRAM_ID,
-        keys: [
-          { pubkey: treasuryPDA, isSigner: false, isWritable: true },
-          { pubkey: publicKey,   isSigner: true,  isWritable: false },
-        ],
-        data: Buffer.from([...DISC_SET_USER_SETTINGS, ...encodeSettings(maxPerReqLamports, dailyLimitLamports)]),
-      }))
-      const sig = await sendTransaction(tx, connection)
-      await connection.confirmTransaction(sig, 'confirmed')
-      toast.success('Settings saved')
-      setShowSettings(false)
-      setTimeout(() => refetch?.(), 2000)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      toast.error('Failed to save settings', { description: msg.slice(0, 120) })
-    } finally {
-      setSavingSettings(false)
-    }
-  }
-
-  async function handleTogglePause() {
-    if (!publicKey || !treasury) return
-    const newPaused = !treasury.isPaused
-    setTogglingPause(true)
-    try {
-      const [treasuryPDA] = getTreasuryPDA(publicKey)
-      const tx = new Transaction().add(new TransactionInstruction({
-        programId: PROGRAM_ID,
-        keys: [
-          { pubkey: treasuryPDA, isSigner: false, isWritable: true },
-          { pubkey: publicKey,   isSigner: true,  isWritable: false },
-        ],
-        data: Buffer.from([...DISC_SET_PAUSED, ...encodeBoolean(newPaused)]),
-      }))
-      const sig = await sendTransaction(tx, connection)
-      await connection.confirmTransaction(sig, 'confirmed')
-      toast.success(newPaused ? 'Treasury paused — agent cannot deduct yield' : 'Treasury unpaused')
-      setTimeout(() => refetch?.(), 2000)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      toast.error('Failed to toggle pause', { description: msg.slice(0, 120) })
-    } finally {
-      setTogglingPause(false)
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <Card className="rounded-3xl border-primary/10 bg-card/60 backdrop-blur-sm">
@@ -497,9 +424,9 @@ export function TreasuryPanel() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowSettings(s => !s)}
+                  onClick={() => router.push('/app/settings?tab=treasury')}
                   className="h-7 w-7 rounded-xl p-0 text-muted-foreground hover:text-foreground"
-                  title="Spending controls"
+                  title="Configure spending controls"
                 >
                   <Settings2 className="size-3.5" />
                 </Button>
@@ -621,63 +548,39 @@ export function TreasuryPanel() {
             </div>
           )}
 
-          {/* Spending controls panel */}
-          {showSettings && treasury && (
-            <div className="mt-3 rounded-2xl border border-primary/15 bg-primary/5 p-3 flex flex-col gap-3">
-              <p className="text-xs font-semibold text-foreground">Spending Controls</p>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-muted-foreground">Per-request cap (SOL) — 0 = unlimited</label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  value={settingsMaxPerReq}
-                  onChange={e => setSettingsMaxPerReq(e.target.value)}
-                  placeholder={treasury.maxPerRequestSol != null ? String(treasury.maxPerRequestSol) : '0 (unlimited)'}
-                  className="h-8 rounded-xl border-primary/20 bg-primary/5 text-sm"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-muted-foreground">Daily spending limit (SOL) — 0 = unlimited</label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  value={settingsDailyLimit}
-                  onChange={e => setSettingsDailyLimit(e.target.value)}
-                  placeholder={treasury.dailyLimitSol != null ? String(treasury.dailyLimitSol) : '0 (unlimited)'}
-                  className="h-8 rounded-xl border-primary/20 bg-primary/5 text-sm"
-                />
-              </div>
-              <div className="flex gap-2">
+          {/* Spending controls — read-only display */}
+          {treasury && treasury.isPaused != null && !needsMigration && (
+            <div className="mt-3 rounded-2xl border border-primary/10 bg-primary/5 p-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-foreground">Spending Controls</p>
                 <Button
+                  variant="ghost"
                   size="sm"
-                  onClick={handleSaveSettings}
-                  disabled={savingSettings}
-                  className="h-8 flex-1 rounded-xl bg-primary text-xs font-semibold"
+                  onClick={() => router.push('/app/settings?tab=treasury')}
+                  className="h-6 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  {savingSettings ? 'Saving…' : 'Save limits'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleTogglePause}
-                  disabled={togglingPause}
-                  className={`h-8 rounded-xl text-xs font-semibold border ${
-                    treasury.isPaused
-                      ? 'border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                      : 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
-                  }`}
-                >
-                  {togglingPause ? '…' : treasury.isPaused
-                    ? <><PlayCircle className="mr-1 size-3" />Unpause</>
-                    : <><PauseCircle className="mr-1 size-3" />Pause</>
-                  }
+                  <Settings2 className="mr-1 size-3" />
+                  Configure
                 </Button>
               </div>
-              {treasury.isPaused && (
-                <p className="text-xs text-destructive/80">Treasury is paused — agent cannot deduct yield.</p>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Per-request cap</span>
+                <span className="text-xs font-medium">
+                  {treasury.maxPerRequestSol ? `${treasury.maxPerRequestSol} SOL` : 'Unlimited'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Daily limit</span>
+                <span className="text-xs font-medium">
+                  {treasury.dailyLimitSol ? `${treasury.dailyLimitSol} SOL` : 'Unlimited'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Agent access</span>
+                <span className={`text-xs font-medium ${treasury.isPaused ? 'text-destructive' : 'text-green-400'}`}>
+                  {treasury.isPaused ? 'Paused' : 'Active'}
+                </span>
+              </div>
             </div>
           )}
 

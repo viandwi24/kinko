@@ -6,12 +6,18 @@
 - [ ] Deploy server to Railway/Fly.io with persistent ngrok or custom domain
 - [ ] Deploy web to Vercel
 - [ ] Agent B A2A flow — x402 payment + Jupiter price feed (code exists, untested end-to-end)
-- [ ] Phase 6: $AGENT token via Metaplex Genesis — optional post-MVP
+- [ ] Phase 6: $AGENT token via Metaplex Genesis — **post-MVP only, tidak dikerjakan sebelum MVP selesai**
 - [ ] Deposit button in frontend — currently disabled, needs Anchor CPI from web
 - [ ] Setup TUI: end-to-end re-run test with auto-fill from existing .env
 - [ ] set-treasury-agent: integrate into register-agent flow so it runs automatically after deposit
 
 ## Done
+
+- [x] Per-user spending controls: per-tx cap, daily limit, pause toggle — completed 2026-04-03
+- [x] V3 treasury migration (73→106 bytes) + frontend banner + migrate flow — completed 2026-04-03
+- [x] Admin dashboard: aggregate treasury stats (total vaults, principal, yield, paused) — completed 2026-04-03
+
+## Done (older)
 
 - [x] Setup automated docs infrastructure (CLAUDE.md, docs/builder/*) — completed 2026-04-01
 - [x] Finalisasi monorepo structure — completed 2026-04-01

@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-kinko_treasury = "aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL"
+kinko_treasury = "HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt"
 
 [programs.devnet]
-kinko_treasury = "aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL"
+kinko_treasury = "HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt"
 
 [registry]
 url = "https://api.apr.dev"

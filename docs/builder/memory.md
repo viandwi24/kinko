@@ -2,11 +2,9 @@
 
 ## No External File Paths
 
-**Jangan pernah keluar dari folder utama project.** Semua config, keypair, dan secret harus lewat env var, bukan path ke sistem (`~/.config/solana/id.json`, dll).
-
-- Keypair → env var sebagai JSON byte array string: `OPERATOR_PRIVATE_KEY=[1,2,3,...]`
-- Cara dapat: `cat <keypair.json> | tr -d '\n'` lalu paste ke `.env`
-- File `~/.config/solana/id.json` atau path di luar repo **tidak boleh** di-hardcode sebagai default
+Semua config, keypair, dan secret harus lewat env var, bukan path ke sistem.
+- Keypair → env var sebagai JSON byte array: `SERVER_AGENT_PRIVATE_KEY=[1,2,3,...]`
+- File `~/.config/solana/id.json` atau path di luar repo **tidak boleh** di-hardcode
 
 ## Project Name
 
@@ -17,65 +15,105 @@ Project ini bernama **Kinko** (sebelumnya disebut AgentVault di docs/hk/idea.md)
 Repo ini adalah **hybrid monorepo**:
 - **TypeScript:** Bun workspaces via `package.json` → `apps/*`, `packages/*`
 - **Rust/Anchor:** Cargo workspace via `Cargo.toml` → `programs/*`
-- **Runtime:** Bun (bukan Node.js/npm) — selalu pakai `bun`, bukan `npm` atau `node`
-- Anchor version: `0.31.x`, workspace dependency di-share dari root `Cargo.toml`
+- **Runtime:** Bun — selalu pakai `bun`, bukan `npm` atau `node`
 
 ## Hackathon Context
 
 Project ini untuk hackathon **Trends.fun x Solana x402 — Metaplex Agents Track**.
-Scoring bergantung pada kedalaman integrasi Metaplex — semakin dalam = semakin tinggi skor.
 
-## MVP 3 Core Loops
+## Token ($AGENT) — Post-MVP
 
-Fokus pada 3 loop ini dulu, score boosters hanya setelah core selesai:
-1. **Loop 1** — Agent Identity (Core Asset + Attributes + Registry)
-2. **Loop 2** — A2A + x402 Payment Flow (dua agent, dua transaksi verifiable)
-3. **Loop 3** — Token Economy (Genesis + buyback + metrics update)
+Semua fitur terkait $AGENT token (buyback via Jupiter, token-gated access, Genesis Participant role, Metaplex Genesis mint) adalah **post-MVP**.
+Jangan implement atau sebut sebelum MVP selesai dan end-to-end flow terbukti berjalan.
 
-## Agent B
+## Contract: Global Config PDA (tidak lagi per-treasury agent)
 
-Agent B bukan fitur produk — dia adalah **saksi A2A yang terverifikasi onchain**. Judges perlu lihat dua Core Asset berbeda, dua wallet berbeda, dua transaksi berbeda.
+`deduct_yield` tidak lagi pakai `has_one = agent` di treasury. Agent pubkey disimpan di global `KinkoConfig` PDA (`seeds: [b"kinko_config"]`).
 
-## YIELD_RATE_BPS Harus Sinkron
+- Setelah deploy, operator **wajib** jalankan `bun run program-init-config` sekali
+- User bisa deposit langsung tanpa perlu `set_agent` — tidak ada lagi step ini
+- `set_agent` instruction sudah dihapus dari contract
 
-`YIELD_RATE_BPS` ada di DUA tempat dan harus selalu sama nilainya:
-1. `contract/programs/kinko-treasury/src/state/user_treasury.rs` — dipakai onchain di `deduct_yield`
-2. `apps/server/src/services/treasury.ts` — dipakai server untuk pre-check sebelum kirim tx
+## YIELD_RATE_BPS
 
-Kalau beda, server akan bilang "cukup yield" tapi contract reject dengan `InsufficientYield`.
-Current value: `800` (8% APY).
+Ada di dua tempat:
+1. `contract/programs/kinko-treasury/src/state/user_treasury.rs` — source of truth onchain
+2. `apps/server/src/services/treasury.ts` — `const YIELD_RATE_BPS = 800n` — hanya untuk pre-check display
 
-## set_agent Wajib Dipanggil Setelah Initialize Treasury
+Server pre-check tidak kritis (contract yang enforce), tapi kalau beda terlalu jauh bisa membingungkan user.
 
-`initialize` di contract set `treasury.agent = Pubkey::default()`. `deduct_yield` punya constraint `has_one = agent` — kalau agent belum di-set, semua chat request gagal dengan `ConstraintHasOne`.
+Toggle yield untuk testing: `bun run program-sim-yield on/off/status` — otomatis rebuild+deploy.
 
-Jalankan: `bun run set-treasury-agent` setelah user pertama kali deposit.
-Script ada di: `contract/scripts/set-treasury-agent.ts` (harus dari contract/ dir agar resolve @coral-xyz/anchor).
+## Staking Provider
 
-## Anchor Module Resolution
+`KinkoConfig.staking_provider` field:
+- `Simulated (0)`: yield via `YIELD_RATE_BPS = 800` formula. Default after `initialize_config`.
+- `Marinade (1)`: SOL deposited to Marinade via CPI → mSOL held in treasury ATA. Yield = mSOL value - principal.
 
-Script yang import `@coral-xyz/anchor` harus ada di dalam `contract/` atau dijalankan dengan CWD `contract/` — Bun resolve dari lokasi file, bukan CWD. Script di root `scripts/` yang butuh anchor tidak bisa resolve modulnya dari sana.
+Switch: `bun run program-set-staking-provider marinade` / `simulated` / `status`
+
+Marinade devnet addresses (docs.marinade.finance/developers/contract-addresses):
+- Program: `MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD`
+- mSOL mint: `mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So`
+- State: `8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC` ← beda dari mainnet!
+- liq_pool_sol_leg_pda: `UefNb6z6yvArqe4cJHTXCqStRsKmWhGxnZzuHbikP5Q`
+- liq_pool_msol_leg: `7GgPYjS5Dza89wV6FpZ23kUJRG5vbQ1GM25ezspYFSoE`
+- reserve_pda: `Du3Ysj1wKbxPKkuPPnvzQLQh8oMSVifs3jGZjJWXFmHN`
+- treasury_msol_account: `8ZUcztoAEhpAeC2ixWewJKQJsSUGYSGPVAjkhDJYf5Gd`
+- msol_mint_authority: `3JLPCS1qM2zRw3Dp6V4hZnYHd4toMNPkNesXdX9tg6KM`
+- liq_pool_msol_leg_authority: PDA `[MARINADE_STATE, b"liq_st_sol_authority"]` dari Marinade program ← seeds include state pubkey!
+- associated_token_program: `ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL` (v2, bukan `...e1brs` lama)
+
+mSOL price in Marinade state (devnet): bytes 344–352 (numerator), 352–360 (denominator), LE u64.
+NOTE: devnet offset berbeda dari mainnet (392/400). Verified empirically — ratio ~1.002 untuk devnet.
+
+## Account Layout Versions
+
+- **Layout lama (97 bytes):** disc(8) + owner(32) + agent(32) + principal(8) + ts(8) + spent(8) + bump(1)
+- **Layout baru v1 (65 bytes):** disc(8) + owner(32) + principal(8) + ts(8) + spent(8) + bump(1)
+- **Layout baru v2 (73 bytes):** disc(8) + owner(32) + principal(8) + ts(8) + spent(8) + msol(8) + bump(1) — current
+
+Frontend auto-detect layout lama dan tampilkan banner migrate. Script operator: `bun run program-migrate-account`.
+`migrate_treasury` instruction pakai `UncheckedAccount` — bypass Anchor discriminator check untuk close layout lama.
+
+## Auth Flow
+
+- **Human user:** SIWS → JWT (24h) → `Authorization: Bearer <token>` di semua chat request
+- **Machine/A2A:** `X-Payment: <txSig>` → server verify tx onchain → serve
+- Auto-login hanya di `/app/*` routes — landing page tidak trigger wallet popup
+- JWT di-store di `localStorage` dengan key `kinko_auth`
+
+## Chat Error Codes
+
+- `treasury_not_found` (404) → user belum deposit, tampilkan instruksi deposit
+- `insufficient_yield` (402) → yield kurang, tunggu atau deposit lebih
+- `unauthorized` (401) → JWT expired, user perlu reconnect wallet
 
 ## Frontend Config dari Server
 
-Web frontend hanya butuh satu env var: `NEXT_PUBLIC_AGENT_URL`. Semua info lain (programId, rpcUrl, agentAssetAddress) di-fetch dari `GET /api/config`. Tidak ada `NEXT_PUBLIC_ANCHOR_PROGRAM_ID` atau sejenisnya di web.
+Web frontend hanya butuh: `NEXT_PUBLIC_AGENT_URL`. Semua info lain (programId, rpcUrl, agentAssetAddress, agentKeypairPubkey) di-fetch dari `GET /api/config`.
 
 ## Dynamic Metadata Routes
 
-Semua JSON metadata dilayani sebagai dynamic server routes — tidak ada file JSON yang ditulis ke disk:
-- `/.well-known/agent.json` — ERC-8004, dari config
-- `/.well-known/metadata.json` — NFT/Metaplex standard, dari env
-- `/.well-known/agent-card.json` — A2A, dari config
-- `/.well-known/logo.png` — static file dari `assets/kinko_logo.png`
+Semua JSON metadata dilayani sebagai dynamic server routes:
+- `/.well-known/agent.json` — ERC-8004
+- `/.well-known/metadata.json` — NFT/Metaplex standard
+- `/.well-known/agent-card.json` — A2A
+- `/agents/prices/...` — Kinko Prices sub-agent routes
 
 ## Anchor Program Devnet
 
-Program `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL` sudah deployed di devnet.
+Program `aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL` deployed di devnet.
+KinkoConfig PDA: `C8YhkoqKoSjbXmFGhLXTNxZo5cD7ZcRE5uDVFhiBXHNj`.
 Upgrade authority: `data/agent-keypair.json`.
-Deploy: `bun run deploy:contract` (build dulu dengan `bun run build:contract`).
+Deploy: `bun run deploy:contract`.
 
-## Existing Docs (dari sebelum setup)
+## A2A Discovery
 
-- `docs/hk/idea.md` — Full product concept, demo script, revenue model, technical architecture
-- `docs/hk/ecosystem.md` — Deep dive Metaplex ecosystem + code examples
-- `docs/hk/integration-checklist.md` — Checklist integrasi untuk hackathon
+Primary: `KINKO_PRICES_ASSET_ADDRESS` env var → fetch agent-card.json langsung.
+Secondary: Helius DAS `getAssetsByOwner` (butuh `HELIUS_API_KEY`).
+Machine caller bayar via x402 (10,000 lamports per request ke Kinko Prices).
+
+## Wallet Button
+
+Pakai custom `WalletButton` component (`apps/web/components/wallet-button.tsx`) — bukan `WalletMultiButton` dari `@solana/wallet-adapter-react-ui`. Import dengan `dynamic` (ssr: false).

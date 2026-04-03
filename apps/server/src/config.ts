@@ -12,7 +12,7 @@ function loadKeypairFromEnv(): Keypair {
 export const config = {
   rpcUrl: process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
   publicRpcUrl: process.env.PUBLIC_RPC_URL ?? process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
-  programId: process.env.ANCHOR_PROGRAM_ID ?? 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL',
+  programId: process.env.ANCHOR_PROGRAM_ID ?? 'HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt',
   agentName: process.env.SERVER_AGENT_NAME ?? 'Kinko',
   agentAssetAddress: process.env.SERVER_AGENT_ASSET_ADDRESS ?? '',
   pricesAgentAssetAddress: process.env.KINKO_PRICES_ASSET_ADDRESS ?? '',

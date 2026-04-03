@@ -35,7 +35,7 @@ function readEnvFile(relPath: string): Record<string, string> {
 async function main() {
   const serverEnv = readEnvFile('apps/server/.env')
   const rpcUrl = serverEnv['SOLANA_RPC_URL'] ?? 'https://api.devnet.solana.com'
-  const programId = new PublicKey(serverEnv['ANCHOR_PROGRAM_ID'] ?? 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL')
+  const programId = new PublicKey(serverEnv['ANCHOR_PROGRAM_ID'] ?? 'HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt')
   const operatorKp = Keypair.fromSecretKey(new Uint8Array(JSON.parse(serverEnv['SERVER_AGENT_PRIVATE_KEY'] || '[]')))
   const agentPubkey = operatorKp.publicKey // same keypair = operator is the agent
 

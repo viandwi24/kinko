@@ -1,13 +1,15 @@
 #!/usr/bin/env bun
 /**
- * scripts/set-treasury-agent.ts
+ * scripts/program-close-config.ts
  *
- * Calls set_agent on the user's treasury PDA to register the server agent pubkey.
- * Must be signed by the treasury owner (the user wallet).
+ * ⚠️  DEV/DEBUG ONLY — DO NOT RUN ON MAINNET
  *
- * Usage: bun run scripts/set-treasury-agent.ts
- * The script reads SERVER_AGENT_PRIVATE_KEY from apps/server/.env — the agent keypair
- * IS the owner wallet in this test setup (same keypair used to fund and deposit).
+ * Closes the KinkoConfig PDA using the close_config instruction.
+ * Use this when you need to re-initialize config after a struct layout change.
+ *
+ * After running this, call: bun run program-init-config
+ *
+ * Usage: bun run program-close-config
  */
 
 import { existsSync, readFileSync } from 'fs'
@@ -15,7 +17,7 @@ import { resolve } from 'path'
 import * as anchor from '@coral-xyz/anchor'
 import { Connection, PublicKey, Keypair } from '@solana/web3.js'
 
-const ROOT = resolve(import.meta.dirname, '../..')
+const ROOT = resolve(import.meta.dirname, '..')
 
 function readEnvFile(relPath: string): Record<string, string> {
   const absPath = resolve(ROOT, relPath)
@@ -35,38 +37,44 @@ async function main() {
   const serverEnv = readEnvFile('apps/server/.env')
   const rpcUrl = serverEnv['SOLANA_RPC_URL'] ?? 'https://api.devnet.solana.com'
   const programId = new PublicKey(serverEnv['ANCHOR_PROGRAM_ID'] ?? 'HQN9wauX94q7gTA7m9dy2XuErZJjGibVVcE5z3X5oryt')
-  const agentKp = Keypair.fromSecretKey(new Uint8Array(JSON.parse(serverEnv['SERVER_AGENT_PRIVATE_KEY'])))
+  const operatorKp = Keypair.fromSecretKey(new Uint8Array(JSON.parse(serverEnv['SERVER_AGENT_PRIVATE_KEY'] || '[]')))
 
-  console.log('RPC         :', rpcUrl)
-  console.log('Program     :', programId.toBase58())
-  console.log('Owner/Signer:', agentKp.publicKey.toBase58())
-  console.log('Agent to set:', agentKp.publicKey.toBase58())
+  console.log('⚠️  DEV/DEBUG ONLY — closing KinkoConfig PDA')
+  console.log('RPC      :', rpcUrl)
+  console.log('Operator :', operatorKp.publicKey.toBase58())
 
-  const idl = await import('../target/idl/kinko_treasury.json', { with: { type: 'json' } })
+  const idl = await import('../contract/target/idl/kinko_treasury.json', { with: { type: 'json' } })
   const connection = new Connection(rpcUrl, 'confirmed')
-  const wallet = new anchor.Wallet(agentKp)
+  const wallet = new anchor.Wallet(operatorKp)
   const provider = new anchor.AnchorProvider(connection, wallet, { commitment: 'confirmed' })
   anchor.setProvider(provider)
   const program = new anchor.Program(idl.default as anchor.Idl, provider)
 
-  const [treasuryPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from('treasury'), agentKp.publicKey.toBuffer()],
+  const [configPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from('kinko_config')],
     programId
   )
 
-  console.log('Treasury PDA:', treasuryPda.toBase58())
+  const existing = await connection.getAccountInfo(configPda)
+  if (!existing) {
+    console.log('\nConfig PDA not found — already closed or not initialized.')
+    process.exit(0)
+  }
+
+  console.log('Config PDA:', configPda.toBase58(), `(${existing.data.length} bytes)`)
 
   const tx = await (program.methods as any)
-    .setAgent(agentKp.publicKey)
+    .closeConfig()
     .accounts({
-      treasury: treasuryPda,
-      owner: agentKp.publicKey,
+      config: configPda,
+      authority: operatorKp.publicKey,
     })
-    .signers([agentKp])
+    .signers([operatorKp])
     .rpc()
 
-  console.log('\nDone! tx:', tx)
-  console.log('Treasury agent is now set to:', agentKp.publicKey.toBase58())
+  console.log('\n✅ KinkoConfig PDA closed')
+  console.log('   Tx:', tx)
+  console.log('\nNext: bun run program-init-config')
 }
 
 main().catch((err) => {
