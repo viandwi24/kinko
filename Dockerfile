@@ -14,6 +14,7 @@ RUN bun install && bun install --cwd apps/server
 
 # Copy source
 COPY apps/server ./apps/server
+COPY assets ./assets
 
 # Non-sensitive defaults
 ENV SOLANA_RPC_URL=https://api.devnet.solana.com
