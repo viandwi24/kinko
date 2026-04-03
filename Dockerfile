@@ -8,7 +8,7 @@ COPY package.json ./
 RUN sed -i '/"contract"/d' package.json
 COPY apps/server/package.json ./apps/server/package.json
 COPY packages/ ./packages/
-RUN bun install
+RUN bun install && bun install --cwd apps/server
 
 # Production image
 FROM base AS runner
@@ -16,6 +16,7 @@ WORKDIR /app
 
 # Copy installed node_modules
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 
 # Copy source
 COPY --from=deps /app/package.json ./
