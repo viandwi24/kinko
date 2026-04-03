@@ -1,13 +1,14 @@
 #!/usr/bin/env bun
 /**
- * scripts/set-treasury-agent.ts
+ * scripts/init-config.ts
  *
- * Calls set_agent on the user's treasury PDA to register the server agent pubkey.
- * Must be signed by the treasury owner (the user wallet).
+ * Initializes the global KinkoConfig PDA on-chain (called ONCE after deploy).
+ * Sets the agent pubkey — the only wallet allowed to call deduct_yield.
  *
- * Usage: bun run scripts/set-treasury-agent.ts
- * The script reads SERVER_AGENT_PRIVATE_KEY from apps/server/.env — the agent keypair
- * IS the owner wallet in this test setup (same keypair used to fund and deposit).
+ * Usage: bun run init-config
+ *
+ * Reads SERVER_AGENT_PRIVATE_KEY from apps/server/.env.
+ * The agent pubkey is derived from the same keypair (server signs deduct_yield).
  */
 
 import { existsSync, readFileSync } from 'fs'
@@ -35,38 +36,49 @@ async function main() {
   const serverEnv = readEnvFile('apps/server/.env')
   const rpcUrl = serverEnv['SOLANA_RPC_URL'] ?? 'https://api.devnet.solana.com'
   const programId = new PublicKey(serverEnv['ANCHOR_PROGRAM_ID'] ?? 'aAm7smaMYpPzx4PN7LdzRyPd1AqVLzRWbHjCc3qJkXL')
-  const agentKp = Keypair.fromSecretKey(new Uint8Array(JSON.parse(serverEnv['SERVER_AGENT_PRIVATE_KEY'])))
+  const operatorKp = Keypair.fromSecretKey(new Uint8Array(JSON.parse(serverEnv['SERVER_AGENT_PRIVATE_KEY'] || '[]')))
+  const agentPubkey = operatorKp.publicKey // same keypair = operator is the agent
 
   console.log('RPC         :', rpcUrl)
   console.log('Program     :', programId.toBase58())
-  console.log('Owner/Signer:', agentKp.publicKey.toBase58())
-  console.log('Agent to set:', agentKp.publicKey.toBase58())
+  console.log('Operator    :', operatorKp.publicKey.toBase58())
+  console.log('Agent pubkey:', agentPubkey.toBase58())
 
   const idl = await import('../contract/target/idl/kinko_treasury.json', { with: { type: 'json' } })
   const connection = new Connection(rpcUrl, 'confirmed')
-  const wallet = new anchor.Wallet(agentKp)
+  const wallet = new anchor.Wallet(operatorKp)
   const provider = new anchor.AnchorProvider(connection, wallet, { commitment: 'confirmed' })
   anchor.setProvider(provider)
   const program = new anchor.Program(idl.default as anchor.Idl, provider)
 
-  const [treasuryPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from('treasury'), agentKp.publicKey.toBuffer()],
+  const [configPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from('kinko_config')],
     programId
   )
+  console.log('Config PDA  :', configPda.toBase58())
 
-  console.log('Treasury PDA:', treasuryPda.toBase58())
+  // Check if already initialized
+  const existing = await connection.getAccountInfo(configPda)
+  if (existing) {
+    console.log('\n⚠️  Config PDA already initialized — nothing to do.')
+    console.log('   If you need to change the agent, redeploy the contract.')
+    process.exit(0)
+  }
 
   const tx = await (program.methods as any)
-    .setAgent(agentKp.publicKey)
+    .initializeConfig(agentPubkey)
     .accounts({
-      treasury: treasuryPda,
-      owner: agentKp.publicKey,
+      config: configPda,
+      authority: operatorKp.publicKey,
     })
-    .signers([agentKp])
+    .signers([operatorKp])
     .rpc()
 
-  console.log('\nDone! tx:', tx)
-  console.log('Treasury agent is now set to:', agentKp.publicKey.toBase58())
+  console.log('\n✅ KinkoConfig initialized!')
+  console.log('   Config PDA :', configPda.toBase58())
+  console.log('   Agent      :', agentPubkey.toBase58())
+  console.log('   Tx         :', tx)
+  console.log('\nAll user treasuries will now accept deduct_yield from this agent.')
 }
 
 main().catch((err) => {

@@ -13,8 +13,6 @@ pub const SECONDS_PER_YEAR: u64 = 365 * 24 * 60 * 60;
 #[account]
 pub struct UserTreasury {
     pub owner: Pubkey,
-    /// Agent A pubkey — the only account allowed to call deduct_yield
-    pub agent: Pubkey,
     pub principal_lamports: u64,
     /// Unix timestamp of last deposit (yield clock resets on deposit)
     pub deposit_timestamp: i64,

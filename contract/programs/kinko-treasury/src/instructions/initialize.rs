@@ -21,7 +21,6 @@ pub struct Initialize<'info> {
 pub fn handle(context: Context<Initialize>) -> Result<()> {
     let treasury = &mut context.accounts.treasury;
     treasury.owner = context.accounts.owner.key();
-    treasury.agent = Pubkey::default();
     treasury.principal_lamports = 0;
     treasury.deposit_timestamp = Clock::get()?.unix_timestamp;
     treasury.total_yield_spent = 0;

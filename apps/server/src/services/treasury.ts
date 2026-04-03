@@ -26,6 +26,14 @@ function getTreasuryPda(owner: PublicKey, programId: PublicKey): PublicKey {
   return pda
 }
 
+function getConfigPda(programId: PublicKey): PublicKey {
+  const [pda] = PublicKey.findProgramAddressSync(
+    [Buffer.from('kinko_config')],
+    programId
+  )
+  return pda
+}
+
 function computeAvailableYield(
   principalLamports: bigint,
   depositTimestamp: bigint,
@@ -114,11 +122,14 @@ export async function checkAndDeductYield(
     )
   }
 
+  const configPda = getConfigPda(programId)
+
   // Call deduct_yield — agent signs, yield goes to agent's own wallet (recipient = agent)
   const txHash = await (program.methods as any)
     .deductYield(new anchor.BN(amountLamports.toString()))
     .accounts({
       treasury: treasuryPda,
+      config: configPda,
       agent: agentKeypair.publicKey,
       recipient: agentKeypair.publicKey,
     })

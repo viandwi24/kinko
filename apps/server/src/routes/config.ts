@@ -8,5 +8,6 @@ configRoute.get('/', (c) => {
     programId: config.programId,
     rpcUrl: config.publicRpcUrl,
     agentAssetAddress: config.agentAssetAddress,
+    agentKeypairPubkey: config.agentKeypair.publicKey.toBase58(),
   })
 })

@@ -8,17 +8,29 @@ Be helpful and concise. Mention relevant Solana/DeFi context when appropriate.
 If you're given real-time data from a specialist agent, use it in your answer and mention the agent was paid via x402.`
 
 // Skills that trigger A2A discovery
-const SKILL_TRIGGERS: { skill: string; keywords: string[] }[] = [
-  {
-    skill: 'price',
-    keywords: ['sol price', 'price of sol', 'how much is sol', 'solana price', 'sol/usd', 'current price'],
-  },
+const PRICE_KEYWORDS = ['price', 'harga', 'how much', 'berapa', 'cost', 'worth', 'trading at', 'valued at']
+const CRYPTO_PAIRS: { keywords: string[]; pair: string }[] = [
+  { keywords: ['btc', 'bitcoin'], pair: 'BTCUSDT' },
+  { keywords: ['eth', 'ethereum'], pair: 'ETHUSDT' },
+  { keywords: ['sol', 'solana'], pair: 'SOLUSDT' },
+  { keywords: ['bnb'], pair: 'BNBUSDT' },
+  { keywords: ['xrp', 'ripple'], pair: 'XRPUSDT' },
+  { keywords: ['doge', 'dogecoin'], pair: 'DOGEUSDT' },
+  { keywords: ['ada', 'cardano'], pair: 'ADAUSDT' },
+  { keywords: ['avax', 'avalanche'], pair: 'AVAXUSDT' },
+  { keywords: ['matic', 'polygon'], pair: 'MATICUSDT' },
+  { keywords: ['link', 'chainlink'], pair: 'LINKUSDT' },
 ]
 
-function detectSkill(query: string): string | null {
+function detectPriceQuery(query: string): { skill: string; body: Record<string, unknown> } | null {
   const lower = query.toLowerCase()
-  for (const { skill, keywords } of SKILL_TRIGGERS) {
-    if (keywords.some(k => lower.includes(k))) return skill
+  const hasPriceKeyword = PRICE_KEYWORDS.some(k => lower.includes(k))
+  if (!hasPriceKeyword) return null
+
+  for (const { keywords, pair } of CRYPTO_PAIRS) {
+    if (keywords.some(k => lower.includes(k))) {
+      return { skill: 'price', body: { pair } }
+    }
   }
   return null
 }
@@ -35,14 +47,14 @@ export const llmService = {
     let context = ''
 
     // Detect if query needs a specialist agent skill
-    const skill = detectSkill(query)
-    if (skill) {
+    const priceQuery = detectPriceQuery(query)
+    if (priceQuery) {
       try {
-        const result = await callSkillViaA2A(skill)
+        const result = await callSkillViaA2A(priceQuery.skill, priceQuery.body)
         if (result) {
           context = `[Real-time data from "${result.agentName}" (${result.agentAddress.slice(0, 8)}…) via x402 payment (tx: ${result.paymentTx.slice(0, 12)}…)]\n${JSON.stringify(result.data, null, 2)}\n\n`
         } else {
-          context = `[Note: No specialist agent found for skill "${skill}" in registry — answering from general knowledge]\n\n`
+          context = `[Note: No specialist agent found for skill "${priceQuery.skill}" — answering from general knowledge]\n\n`
         }
       } catch (err) {
         console.error('[a2a] skill fetch failed:', err)

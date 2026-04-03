@@ -6,4 +6,6 @@ pub enum KinkoError {
     ZeroAmount,
     #[msg("Insufficient yield — deposit more SOL or wait for yield to accrue")]
     InsufficientYield,
+    #[msg("Unauthorized — signer is not the registered agent")]
+    UnauthorizedAgent,
 }

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::state::UserTreasury;
+use crate::state::{UserTreasury, KinkoConfig};
 use crate::errors::KinkoError;
 
 #[derive(Accounts)]
@@ -8,11 +8,17 @@ pub struct DeductYield<'info> {
         mut,
         seeds = [b"treasury", treasury.owner.as_ref()],
         bump = treasury.bump,
-        has_one = agent
     )]
     pub treasury: Account<'info, UserTreasury>,
 
-    /// Agent A — only this signer can deduct yield
+    /// Global config — agent pubkey is validated here
+    #[account(
+        seeds = [b"kinko_config"],
+        bump = config.bump,
+    )]
+    pub config: Account<'info, KinkoConfig>,
+
+    /// Must match config.agent
     pub agent: Signer<'info>,
 
     /// Receives the yield (agent operating wallet)
@@ -22,10 +28,13 @@ pub struct DeductYield<'info> {
 
 pub fn handle(context: Context<DeductYield>, amount_lamports: u64) -> Result<()> {
     require!(amount_lamports > 0, KinkoError::ZeroAmount);
+    require!(
+        context.accounts.agent.key() == context.accounts.config.agent,
+        KinkoError::UnauthorizedAgent
+    );
 
     let current_timestamp = Clock::get()?.unix_timestamp;
     let available = context.accounts.treasury.available_yield(current_timestamp);
-
     require!(amount_lamports <= available, KinkoError::InsufficientYield);
 
     let treasury = &mut context.accounts.treasury;
