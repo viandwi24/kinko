@@ -43,8 +43,6 @@ const DISC_MIGRATE_V2       = Buffer.from([245, 161, 182, 132, 205, 168, 126, 16
 const DISC_CLOSE_TREASURY      = Buffer.from([113, 239, 0, 73, 12, 113, 171, 43])
 const DISC_WITHDRAW_MARINADE   = Buffer.from([141, 149, 162, 126, 110, 48, 117, 15])
 const DISC_MIGRATE_V3          = Buffer.from([57, 197, 129, 68, 41, 166, 5, 236])
-const DISC_SET_USER_SETTINGS   = Buffer.from([26, 175, 170, 93, 31, 136, 123, 56])
-const DISC_SET_PAUSED          = Buffer.from([91, 60, 125, 192, 176, 225, 166, 218])
 
 const V0_ACCOUNT_SIZE = 97  // disc(8)+owner(32)+agent(32)+principal(8)+ts(8)+spent(8)+bump(1)
 const V1_ACCOUNT_SIZE = 65  // disc(8)+owner(32)+principal(8)+ts(8)+spent(8)+bump(1)
